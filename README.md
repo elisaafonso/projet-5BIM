@@ -1,6 +1,6 @@
 # Analyse de sensibilité
 
-Ce code fonctionne sur un PC Windows, quelques modifications sont à réaliser sur un PC Unix (décrites en dessous).
+Ce code fonctionne sur un PC Windows, quelques modifications sont à réaliser sur un PC Unix (décrites dans la première partie).
 
 L'analyse de sensibilité est réalisée à l'aide de la méthode de Sobol implémentée dans le package python SALib : [href]{https://salib.readthedocs.io/en/latest/api.html}.
 
