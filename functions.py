@@ -98,6 +98,9 @@ def load_files(cell_mat_path, neighboring_cells_path):
         df = pd.DataFrame(cells_T)
         df_filtered = df.iloc[:, 0:6] #récupérer les 6 premières colonnes (id, (x,y,z), volume, type cellulaire)
         filtered_rows = df_filtered[df_filtered.iloc[:, 5] == 3.0]  # cancer cells 
+
+        #Get only the cancer cells in conjonctive tissue, position between (1,2,3) = (x,y,z), below -115 in y axis
+        filtered_rows = df_filtered[df_filtered.iloc[:, 2] <= -115.0] #y <= -115    
         
         # IDs et volumes des cellules cancéreuses
         ids_cancer_cells = filtered_rows.iloc[:, 0].astype(int).tolist() #ids
@@ -129,6 +132,7 @@ def load_files(cell_mat_path, neighboring_cells_path):
                             neighboring_cells[cell_id].append(neighbor)
     except Exception as e: 
         print(f"Error loading file : {cell_mat_path} or {neighboring_cells_path} : {e}")
+        #add a warning log here
     return neighboring_cells, total_cells, total_volume, ids_volume_dict
 
 def clustering_cells(neighboring_cells, ids_volume_dict):
@@ -190,22 +194,22 @@ def list_path_folder(folder_path):
     files_by_timestep = defaultdict(list)
 
     # Pattern pour récupérer l'info sur le timestep
-    pattern = re.compile(r"(?:output|final|initial)0*([0-9]+)?")
+    pattern = re.compile(r"(?:output)0*([0-9]+)?")
 
     for filename in path_folder_list:
         # Cas "final" ou "initial"
-        if filename.startswith("final"):
-            key = "final"
-        elif filename.startswith("initial"):
-            key = "initial"
+        #if filename.startswith("final"):
+        #    key = "final"
+        #elif filename.startswith("initial"):
+        #    key = "initial"
+        #else:
+        # Cas "output00001108..." --> On considère que initial correspond à 0 et final au dernier timestep
+        match = pattern.match(filename)
+        if match:
+            timestep = match.group(1)
+            key = int(timestep) if timestep else 0
         else:
-            # Cas "output00001108..."
-            match = pattern.match(filename)
-            if match:
-                timestep = match.group(1)
-                key = int(timestep) if timestep else 0
-            else:
-                continue  # ignorer les fichiers non conformes
+            continue  # ignorer les fichiers non conformes
 
         if filename.endswith(("_cells.mat", "_neighbor_graph.txt")):
             files_by_timestep[key].append(filename)
@@ -239,7 +243,6 @@ def get_matrix_ids(files_by_timestep, root_path):
             file1 = os.path.join(output_path, files_by_timestep[timestep][0]) #cell_mat_path
             result_array = cancer_cell_cluster_per_time(file1, file2)  # Input : cell_mat_path, neighboring_cells_path / doit retourner une liste ou array de taille 3 de la forme [liste avec des sets avec les ids de chaque cellule dans chaque cluster, nb d'agents, volume total]
             if result_array is not None :
-                result_array.append(timestep) #ajout du timestep à la fin
                 result_mat[timestep] = result_array
             else : 
                 print(f"Problème à l'étape {timestep} : résultat None")
@@ -249,7 +252,7 @@ def get_matrix_ids(files_by_timestep, root_path):
             print(f"file1 : {file1}")
     return result_mat
 
-def computation_area_over_time(result_mat): 
+def computation_area_over_time(result_mat, dt): 
     """
     Input :
     result_mat : dictionnaire avec pour chaque pas de temps [clusters, total_cells, total_volume, timestep]
@@ -257,7 +260,6 @@ def computation_area_over_time(result_mat):
     area_over_time : float, aire totale de la tumeur sur le temps
     """
     area_over_time = 0.0
-    dt = 2 #heures
     for key in result_mat.keys():
         if result_mat[key] != []:
             for cluster in result_mat[key][0]:  #clusters

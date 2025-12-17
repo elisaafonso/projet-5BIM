@@ -64,7 +64,7 @@ def get_physicell_output(param_values):
 
         # Print the output and error (if any)
         print("Output:")
-        print(process1.stdout)
+        print(process1.stdout) #vérifier le type
         print("Error:")
         print(process1.stderr)
 
@@ -72,7 +72,8 @@ def get_physicell_output(param_values):
         output_path = os.path.join(root_path, "PhysiCell/output")  
         files_by_timestep = list_path_folder(output_path)
         result_mat = get_matrix_ids(files_by_timestep, root_path)
-        area_over_time = computation_area_over_time(result_mat)
+        dt = int(dict_xml["PhysiCell_settings"]["save"]["full_data"]["interval"]["text_explanation"])/60.0  # conversion en heures
+        area_over_time = computation_area_over_time(result_mat, dt)
         output_storage[i] = area_over_time
 
         #stocker la vidéo 
@@ -116,7 +117,8 @@ def analyze_sobol():
     return Si
 
 if __name__ == "__main__":
-    root_path = "C://Users/elisa/" # !! A changer 
+    root_path = "C://Users/elisa/" # !! A changer
+    #créer un fichier log
     Si = analyze_sobol()
     print(f"Sobol Indices: {Si}")
 

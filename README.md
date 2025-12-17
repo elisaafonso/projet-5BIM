@@ -51,3 +51,10 @@ Les différentes fonctions sont codées dans le fichier : functions.py.
 ## Fichier requirements.txt
 
 Les différents packages à installer se trouvent dans le fichier : requirements.txt.
+
+---
+
+## Pour lancer le script
+
+`python -m pip install -r requirements.txt`
+`python test_analyse_sensibilite.py` après avoir lancer un environnement virtuel.
