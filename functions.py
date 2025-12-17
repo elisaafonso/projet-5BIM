@@ -132,6 +132,9 @@ def load_files(cell_mat_path, neighboring_cells_path):
                             neighboring_cells[cell_id].append(neighbor)
     except Exception as e: 
         print(f"Error loading file : {cell_mat_path} or {neighboring_cells_path} : {e}")
+        f = open( "log_file.log", "a")
+        f.write(f"\nError loading file : {cell_mat_path} or {neighboring_cells_path} : {e}")
+        f.close()
         #add a warning log here
     return neighboring_cells, total_cells, total_volume, ids_volume_dict
 
@@ -245,8 +248,14 @@ def get_matrix_ids(files_by_timestep, root_path):
             if result_array is not None :
                 result_mat[timestep] = result_array
             else : 
+                f = open( "log_file.log", "a")
+                f.write(f"Problème à l'étape {timestep} : résultat None")
+                f.close()
                 print(f"Problème à l'étape {timestep} : résultat None")
         except Exception as e:
+            f = open( "log_file.log", "a")
+            f.write(f"************************************** \n Erreur à l'étape {timestep} : {e} \n file2 : {file2} \n file1 : {file1} \n **************************************")
+            f.close()
             print(f"Erreur à l'étape {timestep} : {e}")
             print(f"file2 : {file2}")
             print(f"file1 : {file1}")
