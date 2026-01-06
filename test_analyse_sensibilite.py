@@ -118,6 +118,8 @@ def analyze_sobol():
 
 if __name__ == "__main__":
     root_path = "C://Users/elisa/" # !! A changer
+    #get le xml et le copier dans config/ 
+    #ouvrir interface graphique Tkinter
     #créer un fichier log
     Si = analyze_sobol()
     print(f"Sobol Indices: {Si}")

@@ -56,5 +56,6 @@ Les différents packages à installer se trouvent dans le fichier : requirements
 
 ## Pour lancer le script
 
-`python -m pip install -r requirements.txt`
-`python test_analyse_sensibilite.py` après avoir lancer un environnement virtuel.
+- Créer l'environnement virtuel : `python -m venv AS_env` et l'activer
+- Installer les dépendances : `python -m pip install -r requirements.txt`
+- Lancer l'analyse de sensibilité : `python test_analyse_sensibilite.py` après avoir lancer un environnement virtuel.
