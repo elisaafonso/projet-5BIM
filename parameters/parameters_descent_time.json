@@ -2,30 +2,26 @@
     "analyse_sensibilite": "descent_time",
     "param_bounds": [
         [
+            0, 
+            10
+        ],
+        [
             0.01,
-            0.1
+            0.5
         ],
         [
-            0.1,
-            2.0
+            0,
+            1
         ],
         [
-            0.001,
-            0.01
-        ],
-        [
-            0.1,
-            1.0
-        ],
-        [
-            0.1,
-            1.0
+            0,
+            10
         ]
     ],
     "seed": 19,
-    "nb_threads": 4,
+    "nb_threads": 5,
     "xml_path": "C://Users/elisa/PhysiCell/config/PhysiCell_settings.xml",
     "physicell_path": "C://Users/elisa/",
     "results_path": "C://Users/elisa/",
-    "nb_sample_to_generate": 8
+    "nb_sample_to_generate": 4
 }

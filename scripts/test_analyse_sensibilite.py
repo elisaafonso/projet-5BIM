@@ -4,7 +4,7 @@ from SALib.analyze.sobol import analyze
 from SALib.sample.sobol import sample
 import numpy as np
 import xml.etree.ElementTree as ET
-from functions import explore_tree, dict_to_xml, list_path_folder, get_matrix_ids, computation_area_over_time, list_mat_files, compute_time_ratio, get_result_mat_persistance
+from functions import explore_tree, dict_to_xml, list_path_folder, get_matrix_ids, computation_area_over_time, list_mat_files, compute_time_ratio, get_result_mat_persistance, get_cell_type
 import os 
 import subprocess
 from collections import defaultdict
@@ -21,9 +21,9 @@ def define_set_param(analyse_sensibilite, param_bounds, N):
 
     if analyse_sensibilite == "descent_time" : 
         problem = {
-            'num_vars': 5,
-            'names': ['attachment_rate', 'cancer_motility_speed', 'transformation_rate_mes', 'cell_adhesion_affinity_LM_EP', 'cell_adhesion_affinity_LB_conj'],
-            'bounds': [param_bounds[0], param_bounds[1], param_bounds[2], param_bounds[3], param_bounds[4]] 
+            'num_vars': 4,
+            'names': ['attachment_rate', 'cancer_motility_speed', 'transformation_rate_mes', 'sensitivity_mmp_factor'],
+            'bounds': [param_bounds[0], param_bounds[1], param_bounds[2], param_bounds[3]] 
         }
     elif analyse_sensibilite == "tumor_persistance" :
         problem = {
@@ -35,7 +35,7 @@ def define_set_param(analyse_sensibilite, param_bounds, N):
     param_values = sample(problem, N, seed = 1) #Génère N*(2+D) jeux de paramètres avec D le nombre de paramètres et N un multiple de 2 fourni en argument
     return problem, param_values
 
-def define_settings(parameters_to_change, nb_threads, seed, analyse_sensibilite, xml_path): 
+def define_settings(parameters_to_change, nb_threads, seed, analyse_sensibilite, xml_path, output_path_i, dict_corresp_name_type, dict_corres_microenv): 
     print("Defining XML settings for the simulation...")
     tree = ET.parse(xml_path)
     root = tree.getroot()
@@ -45,31 +45,25 @@ def define_settings(parameters_to_change, nb_threads, seed, analyse_sensibilite,
 
     ################## DESCENT TIME ####################
     if analyse_sensibilite == "descent_time" :
-        # Attachment rate 
+        # Attachment rate : 0 et 10
         attachment_rate = parameters_to_change[0]
-        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][5]["phenotype"]["mechanics"]["attachment_rate"]["text_explanation"] = attachment_rate
+        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["membrane"]]["phenotype"]["mechanics"]["attachment_rate"]["text_explanation"] = attachment_rate
 
-        #Motility speed cancer cells
+        #Motility speed cancer cells : 0.01 et 0.5
         cancer_motility_speed = parameters_to_change[1]
-        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][3]["phenotype"]["motility"]["speed"]["text_explanation"] = cancer_motility_speed
-        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][8]["phenotype"]["motility"]["speed"]["text_explanation"] = cancer_motility_speed
+        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer"]]["phenotype"]["motility"]["speed"]["text_explanation"] = cancer_motility_speed
+        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer_mes"]]["phenotype"]["motility"]["speed"]["text_explanation"] = cancer_motility_speed
 
-        # Mes transition 
+        # Mes transition : 0 et 1 
         transformation_rate_mes = parameters_to_change[2]
-        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][3]["phenotype"]["cell_transformations"]["transformation_rates"]["transformation_rate"][8]["text_explanation"] = transformation_rate_mes
-        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][8]["phenotype"]["cell_transformations"]["transformation_rates"]["transformation_rate"][3]["text_explanation"] = transformation_rate_mes
+        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer"]]["phenotype"]["cell_transformations"]["transformation_rates"]["transformation_rate"][8]["text_explanation"] = transformation_rate_mes
+        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer_mes"]]["phenotype"]["cell_transformations"]["transformation_rates"]["transformation_rate"][3]["text_explanation"] = transformation_rate_mes
 
-        #Adhésion lame basale/épi basal
-        cell_adhesion_affinity_LM_EP = parameters_to_change[3]
-        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][5]["phenotype"]["mechanics"]["cell_adhesion_affinities"]["cell_adhesion_affinity"][0]["text_explanation"] = cell_adhesion_affinity_LM_EP
-        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][0]["phenotype"]["mechanics"]["cell_adhesion_affinities"]["cell_adhesion_affinity"][5]["text_explanation"] = cell_adhesion_affinity_LM_EP
+        # Secretion cancer mes -- 0 et 10
+        sensitivity_mmp_factor = parameters_to_change[3]
+        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer_mes"]]["phenotype"]["secretion"]["substrate"][dict_corres_microenv["mmp_factor"]]["secretion_rate"]["text_explanation"] = sensitivity_mmp_factor
 
-        #Adhésion MB/Conj 
-        cell_adhesion_affinity_LB_conj = parameters_to_change[4]
-        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][5]["phenotype"]["mechanics"]["cell_adhesion_affinities"]["cell_adhesion_affinity"][6]["text_explanation"] = cell_adhesion_affinity_LB_conj
-        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][6]["phenotype"]["mechanics"]["cell_adhesion_affinities"]["cell_adhesion_affinity"][5]["text_explanation"] = cell_adhesion_affinity_LB_conj
-
-    ################## TUMOR PERSISTANCE ####################
+    ################## TUMOR PERSISTANCE ########################################
     elif analyse_sensibilite == "tumor_persistance" :
         # Vitesse motilité T-Cell 
         motility_speed_t_cell = parameters_to_change[0]
@@ -84,38 +78,46 @@ def define_settings(parameters_to_change, nb_threads, seed, analyse_sensibilite,
 
     dict_xml["PhysiCell_settings"]["parallel"]["omp_num_threads"]["text_explanation"] = nb_threads
     dict_xml["PhysiCell_settings"]["options"]["random_seed"]["text_explanation"] = seed
-
-    #dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][0]["phenotype"]["cell_transformations"]["transformation_rates"]["transformation_rate"][3]["text_explanation"] = transformation_rate_epi_basal_cancer
-    #dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][3]["phenotype"]["cycle"]["phase_durations"]["duration"]["text_explanation"] = life_cycle_cancer_cell
-    dict_xml["PhysiCell_settings"]["overall"]["max_time"]["text_explanation"] = 240 #modification du temps de simulation
+    
+    #define output_path
+    dict_xml["PhysiCell_settings"]["save"]["folder"]["text_explanation"] = output_path_i #output
     return dict_xml
 
-def get_physicell_output(param_values, output_video_folder, nb_threads, seed, root_path, analyse_sensibilite, xml_path): 
+def get_physicell_output(param_values, output_video_folder, nb_threads, seed, root_path, analyse_sensibilite, xml_path, dst_folder, dict_corresp_name_type, dict_corres_microenv): 
     output_storage = np.zeros(param_values.shape[0]) 
     for i in range (len(param_values)): 
         print(f"Running simulation {i+1}...")
         #life_cycle_cancer_cell = param_values[i][0]
         #transformation_rate_epi_basal_cancer = param_values[i][1]
+        output_path_i = os.path.normpath(os.path.join(dst_folder, f"output_{i}"))
+        os.makedirs(output_path_i, exist_ok=True)
+
+
         parameters_to_change = param_values[i]
-        dict_xml = define_settings(parameters_to_change, nb_threads, seed, analyse_sensibilite, xml_path)
+        dict_xml = define_settings(parameters_to_change, nb_threads, seed, analyse_sensibilite, xml_path, output_path_i, dict_corresp_name_type, dict_corres_microenv)
         xml_element = dict_to_xml(dict_xml)
         tree = ET.ElementTree(xml_element)
-        tree.write(os.path.join(root_path, "PhysiCell/config/PhysiCell_settings.xml"), encoding="utf-8", xml_declaration=True) #path à changer
+        tree.write(os.path.join(root_path, f"PhysiCell/config/PhysiCell_settings_{i}.xml"), encoding="utf-8", xml_declaration=True) #path à changer
 
+        #TO SUPRESS, not necessary anymore : **************
         process0 = subprocess.run(
         ["rm", "-rf", "*"],
         capture_output=True,
         text=True,
         cwd=os.path.join(root_path, "PhysiCell/output") #to clean the output folder before each simulation
         )
+        #*******************
 
         print("Configuration file updated. Starting simulation...")
         # Run .exe file 
+        exe_path = os.path.join(root_path, "PhysiCell", "project.exe")
+        xml_path_i = os.path.join(root_path, "PhysiCell", "config", f"PhysiCell_settings_{i}.xml")
+
         process1 = subprocess.run(
-        [os.path.join(root_path, "PhysiCell/project.exe")], # !! To change if linux 
-        capture_output=True,
-        text=True,
-        cwd=os.path.join(root_path, "PhysiCell")
+            [exe_path, xml_path_i],
+            capture_output=True,
+            text=True,
+            cwd=os.path.join(root_path, "PhysiCell")
         )
 
         # Print the output and error (if any)
@@ -125,10 +127,11 @@ def get_physicell_output(param_values, output_video_folder, nb_threads, seed, ro
         print(process1.stderr)
 
         #get output from output folder 
-        output_path = os.path.join(root_path, "PhysiCell/output") 
+        output_path = output_path_i
+        #os.path.join(root_path, "PhysiCell/output") 
 
-        final_time = dict_xml["PhysiCell_settings"]["overall"]["max_time"]["text_explanation"]
-        interval_time = dict_xml["PhysiCell_settings"]["save"]["full_data"]["interval"]["text_explanation"]
+        final_time = int(float(dict_xml["PhysiCell_settings"]["overall"]["max_time"]["text_explanation"]))
+        interval_time = int(float(dict_xml["PhysiCell_settings"]["save"]["full_data"]["interval"]["text_explanation"]))
 
         if analyse_sensibilite == "tumor_persistance" :  
             pos_conj = 0 # A MODIFIER 
@@ -139,13 +142,13 @@ def get_physicell_output(param_values, output_video_folder, nb_threads, seed, ro
         
         elif analyse_sensibilite == "descent_time" : 
             files_by_timestep = list_mat_files(output_path, final_time, interval_time)
-            ratio = compute_time_ratio(files_by_timestep, root_path, position_conj = -200)  
+            ratio = compute_time_ratio(files_by_timestep, root_path, position_conj = -215)  
             metric = ratio
 
         output_storage[i] = metric #computation metric
-
+        
         #stocker la vidéo 
-        process2 = subprocess.run(
+        """process2 = subprocess.run(
         ["make", "jpeg"],
         capture_output=True,
         text=True,
@@ -172,13 +175,13 @@ def get_physicell_output(param_values, output_video_folder, nb_threads, seed, ro
         src = os.path.join(root_path, "PhysiCell/output/out.mp4")
         dst = os.path.join(output_video_folder, f"movie_simulation_{i+1}.mp4")
         # Move video file and rename it
-        shutil.move(src, dst)
+        shutil.move(src, dst)""" #modifier le fichier output donc plus possible de faire make 
 
     return output_storage
 
-def analyze_sobol(output_video_folder, nb_threads, seed, root_path, analyse_sensibilite, param_bounds, xml_path, N):
+def analyze_sobol(output_video_folder, nb_threads, seed, root_path, analyse_sensibilite, param_bounds, xml_path, dst_folder, N, dict_corresp_name_type, dict_corres_microenv):
     problem, param_values = define_set_param(analyse_sensibilite, param_bounds, N)
-    Y = get_physicell_output(param_values, output_video_folder, nb_threads, seed, root_path, analyse_sensibilite, xml_path)
+    Y = get_physicell_output(param_values, output_video_folder, nb_threads, seed, root_path, analyse_sensibilite, xml_path, dst_folder, dict_corresp_name_type, dict_corres_microenv)
     Si = analyze(problem, Y, print_to_console=True, seed = 1)
     return Si
 
@@ -201,12 +204,18 @@ def run_main_analysis(params):
     print("Results path :", result_folder_path)
     print("XML path :", xml_path)
 
+    dict_corresp_name_type, dict_corres_microenv = get_cell_type(xml_path)
+
+    print("***************************")
+    print(dict_corres_microenv)
+    print("*************************")
+
     dst_folder = os.path.join(result_folder_path, "Results_PhysiCell", f"sensitivity_analysis_{analyse_sensibilite}")
     output_video_folder = os.path.join(dst_folder, "output_videos")
     os.makedirs(output_video_folder, exist_ok=True)
 
         
-    Si = analyze_sobol(output_video_folder, nb_threads, seed, root_path, analyse_sensibilite, param_bounds, xml_path, N)
+    Si = analyze_sobol(output_video_folder, nb_threads, seed, root_path, analyse_sensibilite, param_bounds, xml_path, dst_folder, N, dict_corresp_name_type, dict_corres_microenv)
     print(f"Sobol Indices: {Si}")
 
     #Enregistrer les résultats dans un fichier texte 

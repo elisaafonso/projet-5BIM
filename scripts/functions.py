@@ -78,6 +78,20 @@ def dict_to_xml(dict_xml):
     root_content = dict_xml[root_tag]
     return build_element(root_tag, root_content)
 
+def get_cell_type(xml_path): 
+    tree = ET.parse(xml_path)
+    root = tree.getroot()
+    dict_xml = {root.tag: explore_tree(root)}
+    dict_correspondance = {}
+    for i in range (len(dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"])): 
+        dict_correspondance[dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][i]["attrib"]["name"]] = int(dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][i]["attrib"]["ID"])
+
+    dict_corres_microenv = {} 
+    for i in range (len(dict_xml["PhysiCell_settings"]["microenvironment_setup"]["variable"])): 
+        dict_corres_microenv[dict_xml["PhysiCell_settings"]["microenvironment_setup"]["variable"][i]["attrib"]["name"]] = int(dict_xml["PhysiCell_settings"]["microenvironment_setup"]["variable"][i]["attrib"]["ID"])
+    dict_corres_microenv
+    return dict_correspondance, dict_corres_microenv
+
 #*******************************************************************************
 
 ##### FONCTIONS POUR CALCUL METRIQUES AVEC CLUSTERS CELLULES CANCEREUSES  #######
