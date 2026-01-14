@@ -1,5 +1,3 @@
-# A PENSER A MODIFIER : La position du tissu conjonctif dans les conditions initiales et les ids des cellules s'ils ont été modifiés. 
-
 from SALib.analyze.sobol import analyze
 from SALib.sample.sobol import sample
 import numpy as np
@@ -54,7 +52,7 @@ def define_settings(parameters_to_change, nb_threads, seed, analyse_sensibilite,
         dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer"]]["phenotype"]["motility"]["speed"]["text_explanation"] = cancer_motility_speed
         dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer_mes"]]["phenotype"]["motility"]["speed"]["text_explanation"] = cancer_motility_speed
 
-        # Mes transition : 0 et 1 
+        # Mes transition : 0.1 et 1  
         transformation_rate_mes = parameters_to_change[2]
         dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer"]]["phenotype"]["cell_transformations"]["transformation_rates"]["transformation_rate"][8]["text_explanation"] = transformation_rate_mes
         dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer_mes"]]["phenotype"]["cell_transformations"]["transformation_rates"]["transformation_rate"][3]["text_explanation"] = transformation_rate_mes
@@ -64,6 +62,7 @@ def define_settings(parameters_to_change, nb_threads, seed, analyse_sensibilite,
         dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer_mes"]]["phenotype"]["secretion"]["substrate"][dict_corres_microenv["mmp_factor"]]["secretion_rate"]["text_explanation"] = sensitivity_mmp_factor
 
     ################## TUMOR PERSISTANCE ########################################
+    #mettre un bord solide tissu conjonctif pour éviter // enlever CAF 
     elif analyse_sensibilite == "tumor_persistance" :
         # Vitesse motilité T-Cell 
         motility_speed_t_cell = parameters_to_change[0]
@@ -73,6 +72,8 @@ def define_settings(parameters_to_change, nb_threads, seed, analyse_sensibilite,
         division_duration_cancer = parameters_to_change[0]
         dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][3]["phenotype"]["cycle"]["phase_durations"]["duration"]["text_explanation"] = division_duration_cancer
         dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][8]["phenotype"]["cycle"]["phase_durations"]["duration"]["text_explanation"] = division_duration_cancer
+
+        #mort des cellules cancéreuses 
 
     ################## CHANGER LE NOMBRE DE COEUR ET LA SEED  ####################
 
@@ -92,19 +93,18 @@ def get_physicell_output(param_values, output_video_folder, nb_threads, seed, ro
         output_path_i = os.path.normpath(os.path.join(dst_folder, f"output_{i}"))
         os.makedirs(output_path_i, exist_ok=True)
 
-
         parameters_to_change = param_values[i]
         dict_xml = define_settings(parameters_to_change, nb_threads, seed, analyse_sensibilite, xml_path, output_path_i, dict_corresp_name_type, dict_corres_microenv)
         xml_element = dict_to_xml(dict_xml)
         tree = ET.ElementTree(xml_element)
         tree.write(os.path.join(root_path, f"PhysiCell/config/PhysiCell_settings_{i}.xml"), encoding="utf-8", xml_declaration=True) #path à changer
 
-        #TO SUPRESS, not necessary anymore : **************
+        #rajouter make load PROJ=5_bim
         process0 = subprocess.run(
         ["rm", "-rf", "*"],
         capture_output=True,
         text=True,
-        cwd=os.path.join(root_path, "PhysiCell/output") #to clean the output folder before each simulation
+        cwd=output_path_i #to clean the output folder before each simulation
         )
         #*******************
 
@@ -141,8 +141,11 @@ def get_physicell_output(param_values, output_video_folder, nb_threads, seed, ro
             metric = computation_area_over_time(result_mat, dt)
         
         elif analyse_sensibilite == "descent_time" : 
+            id_cancer_cell = dict_corresp_name_type["cancer"]
+            id_cancer_cell_mes = dict_corresp_name_type["cancer_mes"]
             files_by_timestep = list_mat_files(output_path, final_time, interval_time)
-            ratio = compute_time_ratio(files_by_timestep, root_path, position_conj = -215)  
+            position_conj = -215
+            ratio = compute_time_ratio(files_by_timestep, output_path_i, position_conj, id_cancer_cell, id_cancer_cell_mes)  
             metric = ratio
 
         output_storage[i] = metric #computation metric
@@ -181,7 +184,14 @@ def get_physicell_output(param_values, output_video_folder, nb_threads, seed, ro
 
 def analyze_sobol(output_video_folder, nb_threads, seed, root_path, analyse_sensibilite, param_bounds, xml_path, dst_folder, N, dict_corresp_name_type, dict_corres_microenv):
     problem, param_values = define_set_param(analyse_sensibilite, param_bounds, N)
+    
+    #Save parameters values to a CSV file
+    df = pd.DataFrame(param_values, columns=[p['name'] for p in problem['names']]) 
+    df.to_csv(os.path.join(dst_folder, "param_values.csv"), index=False)
+
     Y = get_physicell_output(param_values, output_video_folder, nb_threads, seed, root_path, analyse_sensibilite, xml_path, dst_folder, dict_corresp_name_type, dict_corres_microenv)
+    np.savetxt(os.path.join(dst_folder, "output_values.csv"), Y, delimiter=",")
+
     Si = analyze(problem, Y, print_to_console=True, seed = 1)
     return Si
 

@@ -338,7 +338,7 @@ def list_mat_files(folder_path, final_time, interval_time):
     # Supprimer les entrées avec un nombre de fichiers incorrect, différents de 2 
     keys_to_delete = []
     for key in files_by_timestep.keys(): 
-        if len(files_by_timestep[key]) != 2: 
+        if len(files_by_timestep[key]) != 1: 
             keys_to_delete.append(key)
 
     for key in keys_to_delete: 
@@ -360,57 +360,99 @@ def list_mat_files(folder_path, final_time, interval_time):
 
 #*******************************************************************************
 
-def get_cancer_cell_position(cell_mat_path):
+
+def get_cancer_cell_position(cell_mat_path, neighboring_cells_path, id_cancer_cell, id_cancer_cell_mes):
     """
     Input :
     cell_mat_path : path to the .mat file with cell information
-    
+    neighboring_cells_path : path to the neighboring cells file
+    id_cancer_cell : ID of the cancer cell (non-mesenchymal)
+    id_cancer_cell_mes : ID of the mesenchymal cancer cell
+
     Output :
     position_y : y position of the cancer cell (None if no cancer cell)
     ratio : temps de descente dans le tissu conjonctif / temps total de simulation
     """
     position_y = None
-    
+    ratio = None #temps de descente dans le tissu conjonctif / temps total de simulation
+    is_in_connective_tissue = True 
     try: 
         mat = scipy.io.loadmat(cell_mat_path)
         cells = mat.get("cells")  
         cells_T = cells.T #pour avoir les labels en colonne
         df = pd.DataFrame(cells_T)
         df_filtered = df.iloc[:, 0:6] #récupérer les 6 premières colonnes (id, (x,y,z), volume, type cellulaire)
-        filtered_rows = df_filtered[(df_filtered.iloc[:, 5] == 3.0) | (df_filtered.iloc[:, 5] == 8.0)]  # cancer cells (mesenchymal or not)
+        filtered_rows = df_filtered[(df_filtered.iloc[:, 5] == id_cancer_cell) | (df_filtered.iloc[:, 5] == id_cancer_cell_mes)]  # cancer cells (mesenchymal or not)
         print(filtered_rows)
 
         if len(filtered_rows) > 1 : 
             raise ValueError("More than one cancer cell found.")
-        elif len(filtered_rows) == 1 :
+        elif len(filtered_rows) == 0 :
+            ratio = 1
+        else : 
             position_y = filtered_rows.iloc[0, 2] #y <= -200 : objective to be in connective tissue
-            print(position_y)
+
+            # Charger les voisins
+            with open(neighboring_cells_path, "r") as file:
+                lines = file.readlines()
+                data = [line.strip().split() for line in lines]
+
+            neighbor_ids = []
+            for pos in data:
+                if len(pos) < 2:
+                    continue  # ligne vide ou mal formée
+                try:
+                    cell_id = int(pos[0].split(":")[0])
+                except:
+                    continue
+                if cell_id == int(filtered_rows.iloc[0,0]):
+                    # gérer le cas "953:" sans voisins
+                    if ":" in pos[0] and pos[0].endswith(":") and len(pos) == 1:
+                        neighbor_ids = []
+                    else:
+                        neighbor_ids = [int(n) for n in pos[1].split(",") if n.strip().isdigit()]
+                    break
+
+            if len(neighbor_ids) == 0 : 
+                is_in_connective_tissue = False
+            else : 
+                for neighbor_id in neighbor_ids : 
+                    cell_row = df_filtered[df_filtered.iloc[:,0] == neighbor_id]
+                    cell_type = cell_row.iloc[0, 5]
+                    print(cell_type)
+                    if cell_type != 6 and cell_type != 4: 
+                        is_in_connective_tissue = False
 
     except Exception as e: 
+        #print(f"Error loading file : {cell_mat_path} : {e}")
+        #f = open( "log_file.log", "a")
+        #f.write(f"\nError loading file : {cell_mat_path} : {e}")
+        #f.close()
         raise ValueError(f"Error loading file : {cell_mat_path} : {e}")
-    return position_y
+    return ratio, position_y, is_in_connective_tissue
 
-def compute_time_ratio(files_by_timestep, root_path, position_conj):
+def compute_time_ratio(files_by_timestep, output_path_i, position_conj, id_cancer_cell, id_cancer_cell_mes):
     """
     Input :
     files_by_timestep : dict {timestep: [file1, file2]}
-    root_path : path to the root folder
+    output_path_i : path to the output folder
     Output :
     ratio : temps de descente dans le tissu conjonctif / temps total de simulation
     """
-    output_path = os.path.join(root_path, "PhysiCell/output")
+    output_path = output_path_i
     timesteps = files_by_timestep.keys()
     simulation_time = max(timesteps) 
-    ratio = None #temps de descente dans le tissu conjonctif / temps total de simulation
 
     result_mat = {} #initialisation du dictionnaire de résultats
     for timestep in files_by_timestep.keys():
         result_mat[timestep]= []
         try:
             file1 = os.path.join(output_path, files_by_timestep[timestep][0]) #cell_mat_path
-            position_y = get_cancer_cell_position(file1)  # Input : cell_mat_path 
+            file2 = os.path.join(output_path, files_by_timestep[timestep][1])
+            ratio, position_y, is_in_connective_tissue = get_cancer_cell_position(file1, file2, id_cancer_cell, id_cancer_cell_mes)  # Input : cell_mat_path 
             if position_y is not None : 
-                if position_y <= position_conj : 
+                if is_in_connective_tissue : 
+                #if position_y <= position_conj : 
                     time_in_conj_tissue = timestep
                     ratio = time_in_conj_tissue / simulation_time
                     break
@@ -418,9 +460,11 @@ def compute_time_ratio(files_by_timestep, root_path, position_conj):
                 ratio = 1
                 break #no cancer cell found, so did not reach the connective tissue
         except Exception as e:
+            #f = open( "log_file.log", "a")
+            #f.write(f"************************************** \n Erreur à l'étape {timestep} : {e} \n file1 : {file1} \n **************************************")
+            #f.close()
             raise ValueError(f"Erreur à l'étape {timestep} : {e} \n file1 : {file1}")
     return ratio #métrique finale pour 1 simulation ! 
-
 
 #*******************************************************************************
 
