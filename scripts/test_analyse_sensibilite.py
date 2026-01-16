@@ -54,8 +54,8 @@ def define_settings(parameters_to_change, nb_threads, seed, analyse_sensibilite,
 
         # Mes transition : 0.1 et 1  
         transformation_rate_mes = parameters_to_change[2]
-        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer"]]["phenotype"]["cell_transformations"]["transformation_rates"]["transformation_rate"][8]["text_explanation"] = transformation_rate_mes
-        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer_mes"]]["phenotype"]["cell_transformations"]["transformation_rates"]["transformation_rate"][3]["text_explanation"] = transformation_rate_mes
+        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer"]]["phenotype"]["cell_transformations"]["transformation_rates"]["transformation_rate"][dict_corresp_name_type["cancer_mes"]]["text_explanation"] = transformation_rate_mes
+        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer_mes"]]["phenotype"]["cell_transformations"]["transformation_rates"]["transformation_rate"][dict_corresp_name_type["cancer"]]["text_explanation"] = transformation_rate_mes
 
         # Secretion cancer mes -- 0 et 10
         sensitivity_mmp_factor = parameters_to_change[3]
@@ -66,14 +66,17 @@ def define_settings(parameters_to_change, nb_threads, seed, analyse_sensibilite,
     elif analyse_sensibilite == "tumor_persistance" :
         # Vitesse motilité T-Cell 
         motility_speed_t_cell = parameters_to_change[0]
-        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][4]["phenotype"]["motility"]["speed"]["text_explanation"] = motility_speed_t_cell
+        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["Tcell"]]["phenotype"]["motility"]["speed"]["text_explanation"] = motility_speed_t_cell
 
         # Division cellules cancéreuses (mes et non mes)
-        division_duration_cancer = parameters_to_change[0]
-        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][3]["phenotype"]["cycle"]["phase_durations"]["duration"]["text_explanation"] = division_duration_cancer
-        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][8]["phenotype"]["cycle"]["phase_durations"]["duration"]["text_explanation"] = division_duration_cancer
+        division_duration_cancer = parameters_to_change[1]
+        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer"]]["phenotype"]["cycle"]["phase_durations"]["duration"]["text_explanation"] = division_duration_cancer
+        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer_mes"]]["phenotype"]["cycle"]["phase_durations"]["duration"]["text_explanation"] = division_duration_cancer
 
         #mort des cellules cancéreuses 
+        death_cancer = parameters_to_change[2]
+        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer"]]["phenotype"]["death"]["model"][0]["death_rate"]["text_explanation"] = death_cancer
+        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer_mes"]]["phenotype"]["death"]["model"][0]["death_rate"]["text_explanation"] = death_cancer
 
     ################## CHANGER LE NOMBRE DE COEUR ET LA SEED  ####################
 
@@ -110,7 +113,7 @@ def get_physicell_output(param_values, output_video_folder, nb_threads, seed, ro
 
         print("Configuration file updated. Starting simulation...")
         # Run .exe file 
-        exe_path = os.path.join(root_path, "PhysiCell", "project.exe")
+        exe_path = os.path.join(root_path, "PhysiCell", "project")
         xml_path_i = os.path.join(root_path, "PhysiCell", "config", f"PhysiCell_settings_{i}.xml")
 
         process1 = subprocess.run(
@@ -143,7 +146,7 @@ def get_physicell_output(param_values, output_video_folder, nb_threads, seed, ro
         elif analyse_sensibilite == "descent_time" : 
             id_cancer_cell = dict_corresp_name_type["cancer"]
             id_cancer_cell_mes = dict_corresp_name_type["cancer_mes"]
-            files_by_timestep = list_mat_files(output_path, final_time, interval_time)
+            files_by_timestep = list_path_folder(output_path)
             position_conj = -215
             ratio = compute_time_ratio(files_by_timestep, output_path_i, position_conj, id_cancer_cell, id_cancer_cell_mes)  
             metric = ratio
@@ -186,7 +189,7 @@ def analyze_sobol(output_video_folder, nb_threads, seed, root_path, analyse_sens
     problem, param_values = define_set_param(analyse_sensibilite, param_bounds, N)
     
     #Save parameters values to a CSV file
-    df = pd.DataFrame(param_values, columns=[p['name'] for p in problem['names']]) 
+    df = pd.DataFrame(param_values) 
     df.to_csv(os.path.join(dst_folder, "param_values.csv"), index=False)
 
     Y = get_physicell_output(param_values, output_video_folder, nb_threads, seed, root_path, analyse_sensibilite, xml_path, dst_folder, dict_corresp_name_type, dict_corres_microenv)

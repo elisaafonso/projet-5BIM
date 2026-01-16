@@ -240,8 +240,9 @@ def list_path_folder(folder_path):
         else:
             continue  # ignorer les fichiers non conformes
 
-        if filename.endswith(("_cells.mat", "_neighbor_graph.txt")):
+        if filename.endswith("_cells.mat") or filename.endswith("_cell_neighbor_graph.txt"):
             files_by_timestep[key].append(filename)
+
 
     # Supprimer les entrées avec un nombre de fichiers incorrect, différents de 2 
     keys_to_delete = []
@@ -447,8 +448,13 @@ def compute_time_ratio(files_by_timestep, output_path_i, position_conj, id_cance
     for timestep in files_by_timestep.keys():
         result_mat[timestep]= []
         try:
-            file1 = os.path.join(output_path, files_by_timestep[timestep][0]) #cell_mat_path
-            file2 = os.path.join(output_path, files_by_timestep[timestep][1])
+            files = files_by_timestep[timestep]
+            cell_file = next(f for f in files if f.endswith("_cells.mat"))
+            neighbor_file = next(f for f in files if f.endswith("_cell_neighbor_graph.txt"))
+
+            file1 = os.path.join(output_path, cell_file)
+            file2 = os.path.join(output_path, neighbor_file)
+
             ratio, position_y, is_in_connective_tissue = get_cancer_cell_position(file1, file2, id_cancer_cell, id_cancer_cell_mes)  # Input : cell_mat_path 
             if position_y is not None : 
                 if is_in_connective_tissue : 
@@ -545,5 +551,10 @@ def computation_area_over_time(result_mat, dt):
     return area_over_time
 
 if __name__ == "__main__":
-    pass 
-
+    output_path_i = "/home/vidium06/src/ANA_SENS/Results_PhysiCell/sensitivity_analysis_descent_time/output_0"
+    position_conj = -215
+    id_cancer_cell = 3.0
+    id_cancer_cell_mes = 7.0
+    files_by_timestep = list_path_folder(output_path_i)
+    ratio = compute_time_ratio(files_by_timestep, output_path_i, position_conj, id_cancer_cell, id_cancer_cell_mes) 
+    print(ratio)

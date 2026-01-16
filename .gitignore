@@ -1,6 +1,12 @@
 AS_env/*
-test_package.ipynb
+scripts/test_package.ipynb
 A_FAIRE.txt
 __pycache__/*
 example.log
 log_file.log
+scripts/__pycache__/
+./scripts/__pycache__/functions.cpython-311.pyc
+__pycache__/
+*.pyc
+script_analyse_sensibilite.sh
+scripts.zip
