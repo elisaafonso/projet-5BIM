@@ -28,7 +28,7 @@ Dans les conditions d’initialisation, une seule cellule cancéreuse (non mése
 Le ratio du temps de descente de cette cellule dans le tissu conjonctif sur le temps total de simulation est calculé :
 
 $$
-descent\_time = \frac{t_{\text{descent in conj}}}{t_{\text{tot}}}
+\text{descent\_time} = \frac{t_{\text{descent in conj}}}{t_{\text{tot}}}
 $$
 
 - Si le ratio est égal à 1, la cellule a été éjectée par le tapis roulant ou n’a jamais traversé la lame basale.
@@ -77,7 +77,7 @@ L’hypothèse est que ce sont principalement ces deux types cellulaires, ainsi 
 La métrique choisie est le volume tumoral cumulé au cours du temps :
 
 $$
-volume\_over\_time = \int_0^T \text{volume des cellules tumorales}(t)\ dt
+\text{volume\_over\_time} = \int_0^T \text{volume des cellules tumorales}(t)\ dt
 $$
 
 Quatre paramètres ont également été identifiés pour cette analyse.
