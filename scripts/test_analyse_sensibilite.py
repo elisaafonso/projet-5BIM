@@ -193,6 +193,14 @@ def get_physicell_output(param_values, nb_threads, seed, root_path, analyse_sens
             metric = ratio
 
         output_storage[i] = metric #stockage de la métrique
+
+        #stocker les vidéos 
+        process2 = subprocess.run(
+            ["make", "jpeg", f"OUTPUT={output_path_i}"],
+            capture_output=True,
+            text=True,
+            cwd=os.path.join(root_path, "PhysiCell")
+        )
     return output_storage
 
 def analyze_sobol(nb_threads, seed, root_path, analyse_sensibilite, param_bounds, xml_path, dst_folder, N, dict_corresp_name_type, dict_corres_microenv):

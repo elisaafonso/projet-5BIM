@@ -259,7 +259,6 @@ def get_cancer_cell_position(cell_mat_path, neighboring_cells_path, id_cancer_ce
                     else:
                         neighbor_ids = [int(n) for n in pos[1].split(",") if n.strip().isdigit()]
                     break
-
             if len(neighbor_ids) == 0 : 
                 is_in_connective_tissue = False
             else : 
@@ -269,6 +268,7 @@ def get_cancer_cell_position(cell_mat_path, neighboring_cells_path, id_cancer_ce
                     print(cell_type)
                     if cell_type != id_connective_tissue and cell_type != id_fibroblast: 
                         is_in_connective_tissue = False
+                        
 
     except Exception as e: 
         raise ValueError(f"Error loading file : {cell_mat_path} : {e}")
@@ -288,7 +288,7 @@ def compute_time_ratio(files_by_timestep, output_path_i, id_cancer_cell, id_canc
     output_path = output_path_i
     timesteps = files_by_timestep.keys()
     simulation_time = max(timesteps) 
-
+    ratio = 1 #if is_in_connective_tissue is always False, then ratio = 1
     result_mat = {} #initialisation du dictionnaire de résultats
     for timestep in files_by_timestep.keys():
         result_mat[timestep]= []
@@ -300,7 +300,7 @@ def compute_time_ratio(files_by_timestep, output_path_i, id_cancer_cell, id_canc
             file1 = os.path.join(output_path, cell_file)
             file2 = os.path.join(output_path, neighbor_file)
 
-            ratio, position_y, is_in_connective_tissue = get_cancer_cell_position(file1, file2, id_cancer_cell, id_cancer_cell_mes, id_connective_tissue, id_fibroblast)  # Input : cell_mat_path 
+            position_y, is_in_connective_tissue = get_cancer_cell_position(file1, file2, id_cancer_cell, id_cancer_cell_mes, id_connective_tissue, id_fibroblast)  # Input : cell_mat_path 
             if position_y is not None : #cela veut dire qu'il y a une cellule cancéreuse
                 if is_in_connective_tissue : 
                     time_in_conj_tissue = timestep
