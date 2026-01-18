@@ -27,9 +27,9 @@ Les fichiers d’initialisation de PhysiCell sont disponibles dans le dossier `/
 Dans les conditions d’initialisation, une seule cellule cancéreuse (non mésenchymateuse) est présente. Elle ne peut ni se diviser, ni mourir.  
 Le ratio du temps de descente de cette cellule dans le tissu conjonctif sur le temps total de simulation est calculé :
 
-\[
+$$
 descent_time = \frac{t*{\text{descent in conj}}}{t*{\text{tot}}}
-\]
+$$
 
 - Si le ratio est égal à 1, la cellule a été éjectée par le tapis roulant ou n’a jamais traversé la lame basale.
 - Si le ratio est égal à 0, la cellule est passée dans le tissu conjonctif dès le premier pas de temps.
@@ -76,9 +76,9 @@ L’hypothèse est que ce sont principalement ces deux types cellulaires, ainsi 
 
 La métrique choisie est le volume tumoral cumulé au cours du temps :
 
-\[
-volume_over_time = \int_0^T \text{volume des cellules tumorales}(t)\, dt
-\]
+$$
+volume\_over\_time = \int_0^T \text{volume des cellules tumorales}(t)\, dt
+$$
 
 Quatre paramètres ont également été identifiés pour cette analyse.
 
