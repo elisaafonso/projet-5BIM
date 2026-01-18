@@ -33,9 +33,9 @@ def define_set_param(analyse_sensibilite, param_bounds, N):
         }
     elif analyse_sensibilite == "tumor_persistance" :
         problem = {
-            'num_vars': 2,
-            'names': ['motility_speed_t_cell', 'division_duration_cancer'],
-            'bounds': [param_bounds[0], param_bounds[1]] 
+            'num_vars': 4,
+            'names': ['motility_speed_t_cell', 'division_duration_cancer', 'death_cancer', 'damage_attack_rate'],
+            'bounds': [param_bounds[0], param_bounds[1], param_bounds[2], param_bounds[3]]
         }
 
     param_values = sample(problem, N, seed = 1) #Génère N*(2+D) jeux de paramètres avec D le nombre de paramètres et N un multiple de 2 fourni en argument
