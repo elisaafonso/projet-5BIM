@@ -12,7 +12,7 @@ import re
 
 #*******************************************************************************
 
-# ############# LIRE LE XML EN DICT ET LE GENERER LE NOUVEAU XML ###############
+# ############# INTERACTION AVEC LE FICHIER XML (LECTURE, GENERATION) ##########
 
 #*******************************************************************************
 
@@ -23,6 +23,7 @@ def explore_tree(element):
         element (xml.etree.ElementTree.Element): L'élément XML à convertir.
     Returns:
         dict: Dictionnaire représentant l'élément XML avec ses attributs, enfants et texte.
+    Note : un document xml est composé de balises et chaque balise peut avoir des attributs, du texte (text_explanation) et des balises enfants. 
     """
     result = {}
     # Ajouter les attributs s'ils existent
@@ -79,6 +80,13 @@ def dict_to_xml(dict_xml):
     return build_element(root_tag, root_content)
 
 def get_cell_type(xml_path): 
+    """
+    Input : xml_path, chemin vers le fichier PhysiCell_settings.xml
+
+    Output : 
+    dict_correspondance : dict {cell_type_name: cell_type_ID}, correspondance entre le nom des types cellulaires et leur ID
+    dict_corres_microenv : dict {microenv_variable_name: microenv_variable_ID}, correspondance entre le nom des variables du microenvironnement et leur ID
+    """
     tree = ET.parse(xml_path)
     root = tree.getroot()
     dict_xml = {root.tag: explore_tree(root)}
@@ -94,228 +102,19 @@ def get_cell_type(xml_path):
 
 #*******************************************************************************
 
-##### FONCTIONS POUR CALCUL METRIQUES AVEC CLUSTERS CELLULES CANCEREUSES  #######
-
-#*******************************************************************************
-
-def load_files(cell_mat_path, neighboring_cells_path):
-    """
-    Input :
-    cell_mat_path : path to the .mat file with cell information
-    neighboring_cells_path : path to the .txt file with neighboring cell information
-    
-    Output :
-    neighboring_cells : dict {cancer_cell_id: [neighbor_ids]}
-    filtered_rows : DataFrame with filtered cancer cell information
-    total_cells : int, nombre total d'agents
-    total_volume : float, volume total des cellules cancéreuses
-    """
-    neighboring_cells = None 
-    filtered_rows = None
-    total_cells = None
-    total_volume = None
-    ids_volume_dict = None
-    
-    try: 
-        # Charger le fichier .mat avec le descriptif (e.g. les labels) de chaque agent 
-        mat = scipy.io.loadmat(cell_mat_path)
-        cells = mat.get("cells")  
-        cells_T = cells.T #pour avoir les labels en colonne
-        df = pd.DataFrame(cells_T)
-        df_filtered = df.iloc[:, 0:6] #récupérer les 6 premières colonnes (id, (x,y,z), volume, type cellulaire)
-        filtered_rows = df_filtered[df_filtered.iloc[:, 5] == 3.0]  # cancer cells 
-
-        #Get only the cancer cells in conjonctive tissue, position between (1,2,3) = (x,y,z), below -115 in y axis
-        filtered_rows = filtered_rows[filtered_rows.iloc[:, 2] <= -200.0] #y <= -200
-        
-        # IDs et volumes des cellules cancéreuses
-        ids_cancer_cells = filtered_rows.iloc[:, 0].astype(int).tolist() #ids
-        ids_cancer_cells_volume = filtered_rows.iloc[:, 4].astype(float).tolist() #volumes
-        
-        # Dictionnaire id -> volume
-        ids_volume_dict = {ids_cancer_cells[i]: ids_cancer_cells_volume[i] for i in range(len(ids_cancer_cells))}
-        
-        # Nombre total et volume total
-        total_cells = df_filtered.shape[0] #nombre total d'agents
-        total_volume = df_filtered.iloc[:, 4].sum() #volume total des agents
-
-        # Charger les voisins
-        with open(neighboring_cells_path, "r") as file:
-            lines = file.readlines()
-            data = [line.strip().split() for line in lines]
-
-        # Construire le dictionnaire des voisins cancéreux
-        neighboring_cells = {} 
-        for pos in data: 
-            cell_id = int(pos[0].split(":")[0])
-            if cell_id in ids_cancer_cells:
-                if cell_id not in neighboring_cells:
-                    neighboring_cells[cell_id] = []
-                if len(pos) > 1: 
-                    neighbor_ids = [int(n) for n in pos[1].split(",")]
-                    for neighbor in neighbor_ids: 
-                        if neighbor in ids_cancer_cells:
-                            neighboring_cells[cell_id].append(neighbor)
-    except Exception as e: 
-        print(f"Error loading file : {cell_mat_path} or {neighboring_cells_path} : {e}")
-        f = open( "log_file.log", "a")
-        f.write(f"\nError loading file : {cell_mat_path} or {neighboring_cells_path} : {e}")
-        f.close()
-        #add a warning log here
-    return neighboring_cells, total_cells, total_volume, ids_volume_dict
-
-def clustering_cells(neighboring_cells, ids_volume_dict):
-    """ 
-    Input : 
-    neighboring_cells : dictionnaire des voisins proches
-    cell_mat : matrice avec IDs des cellules et labels
-
-    Output : 
-    clusters : vecteur avec chaque id par cluster dans le tissu conjonctif et nombre total de cellules cancéreuses
-    """
-    clusters = []
-
-    for cell_id, neighbors in neighboring_cells.items():
-        new_cluster = set()
-        new_cluster.add(cell_id)
-        for n in neighbors:
-            new_cluster.add(n)
-
-        merged = []
-        for cluster in clusters:
-            if not new_cluster.isdisjoint(cluster):
-                new_cluster = new_cluster.union(cluster)
-            else:
-                merged.append(cluster)
-
-        merged.append(new_cluster)
-        clusters = merged
-    
-    clusters_volume = [] #Ajout de l'info du volume de chaque cancer cell présente dans chaque cluster 
-    for cluster in clusters : 
-        cluster_volume = {}
-        for cell in cluster : 
-            cluster_volume[cell] = ids_volume_dict[cell]
-        clusters_volume.append(cluster_volume)
-    return clusters_volume
-
-def cancer_cell_cluster_per_time(cell_mat_path, neighboring_cells_path):
-    """
-    Input :
-    cell_mat_path : path to the .mat file with cell information
-    neighboring_cells_path : path to the .txt file with neighboring cell information
-    
-    Output :
-    clusters : list of clusters of neighboring cancer cells (with at least 1 cancer cell)
-    total_cancer_cells : total number of cancer cells
-    """
-    output_time_step = None
-    neighboring_cells, total_cells, total_volume, ids_volume_dict = load_files(cell_mat_path, neighboring_cells_path)
-    if neighboring_cells is not None :
-        clusters = clustering_cells(neighboring_cells, ids_volume_dict)
-        output_time_step = [clusters, total_cells, total_volume]
-    return output_time_step #output at each time step 
-
-def list_path_folder(folder_path):
-    path_folder_list = os.listdir(folder_path)
-
-    # Initialisation du dictionnaire de listes
-    files_by_timestep = defaultdict(list)
-
-    # Pattern pour récupérer l'info sur le timestep
-    pattern = re.compile(r"(?:output)0*([0-9]+)?")
-
-    for filename in path_folder_list:
-        # Cas "final" ou "initial"
-        #if filename.startswith("final"):
-        #    key = "final"
-        #elif filename.startswith("initial"):
-        #    key = "initial"
-        #else:
-        # Cas "output00001108..." --> On considère que initial correspond à 0 et final au dernier timestep
-        match = pattern.match(filename)
-        if match:
-            timestep = match.group(1)
-            key = int(timestep) if timestep else 0
-        else:
-            continue  # ignorer les fichiers non conformes
-
-        if filename.endswith("_cells.mat") or filename.endswith("_cell_neighbor_graph.txt"):
-            files_by_timestep[key].append(filename)
-
-
-    # Supprimer les entrées avec un nombre de fichiers incorrect, différents de 2 
-    keys_to_delete = []
-    for key in files_by_timestep.keys(): 
-        if len(files_by_timestep[key]) != 2: 
-            keys_to_delete.append(key)
-
-    for key in keys_to_delete: 
-        del files_by_timestep[key]
-    files_by_timestep = dict(files_by_timestep)
-    return files_by_timestep
-
-def get_matrix_ids(files_by_timestep, root_path):
-    """
-    Input :
-    files_by_timestep : dict {timestep: [file1, file2]}
-    root_path : path to the root folder
-    Output :
-    result_mat : dict {timestep: [clusters, total_cells, total_volume, timestep]}
-    """
-    output_path = os.path.join(root_path, "PhysiCell/output")
-
-    result_mat = {} #initialisation du dictionnaire de résultats
-    for timestep in files_by_timestep.keys():
-        result_mat[timestep]= []
-        try:
-            file2 = os.path.join(output_path, files_by_timestep[timestep][1]) #neighboring_cells_path
-            file1 = os.path.join(output_path, files_by_timestep[timestep][0]) #cell_mat_path
-            result_array = cancer_cell_cluster_per_time(file1, file2)  # Input : cell_mat_path, neighboring_cells_path / doit retourner une liste ou array de taille 3 de la forme [liste avec des sets avec les ids de chaque cellule dans chaque cluster, nb d'agents, volume total]
-            if result_array is not None :
-                result_mat[timestep] = result_array
-            else : 
-                f = open( "log_file.log", "a")
-                f.write(f"Problème à l'étape {timestep} : résultat None")
-                f.close()
-                print(f"Problème à l'étape {timestep} : résultat None")
-        except Exception as e:
-            f = open( "log_file.log", "a")
-            f.write(f"************************************** \n Erreur à l'étape {timestep} : {e} \n file2 : {file2} \n file1 : {file1} \n **************************************")
-            f.close()
-            print(f"Erreur à l'étape {timestep} : {e}")
-            print(f"file2 : {file2}")
-            print(f"file1 : {file1}")
-    return result_mat
-
-def computation_area_over_time_volume(result_mat, dt): 
-    """
-    Input :
-    result_mat : dictionnaire avec pour chaque pas de temps [clusters, total_cells, total_volume, timestep]
-    Output :
-    area_over_time : float, aire totale de la tumeur sur le temps
-    """
-    area_over_time = 0.0
-    for key in result_mat.keys():
-        if result_mat[key] != []:
-            for cluster in result_mat[key][0]:  #clusters
-                cluster_volume = sum(cluster.values())
-                area_over_time += cluster_volume*dt #(volume tumeur / volume total) * dt
-    return area_over_time
-
-
-#*******************************************************************************
-
-############################## LISTER LES FICHIERS .mat ########################
+############################## LISTER LES FICHIERS (.mat, .txt) ################
 
 #*******************************************************************************
 
 def list_mat_files(folder_path, final_time, interval_time):
     """
     Input :
-    folder_path : path to the folder with output files
+    folder_path : Chemin vers le dossier contenant les fichiers de sortie ./output
+    final_time : temps final de simulation
+    interval_time : intervalle de temps entre deux sauvegardes
+
     Output :
-    files_by_timestep : dict {timestep: [file1]} #file1 = cell_mat file for each timestep
+    files_by_timestep : dict {timestep: [file1]} #file1 = fichier cell_mat file pour chaque pas de temps
     """
     path_folder_list = os.listdir(folder_path)
 
@@ -354,6 +153,55 @@ def list_mat_files(folder_path, final_time, interval_time):
     
     return files_by_timestep
 
+def list_path_folder(folder_path, final_time, interval_time):
+    """
+    Input :
+    folder_path : Chemin vers le dossier contenant les fichiers de sortie ./output
+    final_time : temps final de simulation
+    interval_time : intervalle de temps entre deux sauvegardes
+    
+    Output :
+    files_by_timestep : dict {timestep: [file1]} #file1 = fichier cell_mat file pour chaque pas de temps
+    """
+    path_folder_list = os.listdir(folder_path)
+
+    # Initialisation du dictionnaire de listes
+    files_by_timestep = defaultdict(list)
+
+    # Pattern pour récupérer l'info sur le timestep
+    pattern = re.compile(r"(?:output)0*([0-9]+)?")
+
+    for filename in path_folder_list:
+        match = pattern.match(filename)
+        if match:
+            timestep = match.group(1)
+            key = int(timestep) if timestep else 0
+        else:
+            continue  # ignorer les fichiers non conformes
+
+        if filename.endswith("_cells.mat") or filename.endswith("_cell_neighbor_graph.txt"):
+            files_by_timestep[key].append(filename)
+
+
+    # Supprimer les entrées avec un nombre de fichiers incorrect, différents de 2 
+    keys_to_delete = []
+    for key in files_by_timestep.keys(): 
+        if len(files_by_timestep[key]) != 2: 
+            keys_to_delete.append(key)
+
+    for key in keys_to_delete: 
+        del files_by_timestep[key]
+    files_by_timestep = dict(files_by_timestep)
+
+    nb_timestep = final_time // interval_time
+    nb_files = nb_timestep + 1
+    files_by_timestep = dict(files_by_timestep)
+
+    if len(files_by_timestep) != nb_files:
+        raise ValueError(f"Expected {nb_files} files, but found {len(files_by_timestep)} files.")
+    
+    return files_by_timestep
+
 
 #*******************************************************************************
 
@@ -361,21 +209,19 @@ def list_mat_files(folder_path, final_time, interval_time):
 
 #*******************************************************************************
 
-
-def get_cancer_cell_position(cell_mat_path, neighboring_cells_path, id_cancer_cell, id_cancer_cell_mes):
+def get_cancer_cell_position(cell_mat_path, neighboring_cells_path, id_cancer_cell, id_cancer_cell_mes, id_connective_tissue, id_fibroblast):
     """
     Input :
-    cell_mat_path : path to the .mat file with cell information
-    neighboring_cells_path : path to the neighboring cells file
-    id_cancer_cell : ID of the cancer cell (non-mesenchymal)
-    id_cancer_cell_mes : ID of the mesenchymal cancer cell
+    cell_mat_path : Chemin vers le fichier .mat avec les informations des cellules
+    neighboring_cells_path : Chemin vers le fichier des cellules voisines
+    id_cancer_cell : ID des cellules cancéreuses (non-mésenchymateuses)
+    id_cancer_cell_mes : ID des cellules cancéreuses mésenchymateuses
 
     Output :
-    position_y : y position of the cancer cell (None if no cancer cell)
+    position_y : position y des cellules cancéreuses (None si pas de cellules cancéreuses)
     ratio : temps de descente dans le tissu conjonctif / temps total de simulation
     """
     position_y = None
-    ratio = None #temps de descente dans le tissu conjonctif / temps total de simulation
     is_in_connective_tissue = True 
     try: 
         mat = scipy.io.loadmat(cell_mat_path)
@@ -384,14 +230,14 @@ def get_cancer_cell_position(cell_mat_path, neighboring_cells_path, id_cancer_ce
         df = pd.DataFrame(cells_T)
         df_filtered = df.iloc[:, 0:6] #récupérer les 6 premières colonnes (id, (x,y,z), volume, type cellulaire)
         filtered_rows = df_filtered[(df_filtered.iloc[:, 5] == id_cancer_cell) | (df_filtered.iloc[:, 5] == id_cancer_cell_mes)]  # cancer cells (mesenchymal or not)
-        print(filtered_rows)
 
-        if len(filtered_rows) > 1 : 
+        n = len(filtered_rows)
+        if n > 1 : 
             raise ValueError("More than one cancer cell found.")
-        elif len(filtered_rows) == 0 :
-            ratio = 1
+        elif n == 0 :
+            return None, False  # no cancer cell found
         else : 
-            position_y = filtered_rows.iloc[0, 2] #y <= -200 : objective to be in connective tissue
+            position_y = filtered_rows.iloc[0, 2] #Position y de la cellule cancéreuse
 
             # Charger les voisins
             with open(neighboring_cells_path, "r") as file:
@@ -421,22 +267,21 @@ def get_cancer_cell_position(cell_mat_path, neighboring_cells_path, id_cancer_ce
                     cell_row = df_filtered[df_filtered.iloc[:,0] == neighbor_id]
                     cell_type = cell_row.iloc[0, 5]
                     print(cell_type)
-                    if cell_type != 6 and cell_type != 4: 
+                    if cell_type != id_connective_tissue and cell_type != id_fibroblast: 
                         is_in_connective_tissue = False
 
     except Exception as e: 
-        #print(f"Error loading file : {cell_mat_path} : {e}")
-        #f = open( "log_file.log", "a")
-        #f.write(f"\nError loading file : {cell_mat_path} : {e}")
-        #f.close()
         raise ValueError(f"Error loading file : {cell_mat_path} : {e}")
-    return ratio, position_y, is_in_connective_tissue
+    return position_y, is_in_connective_tissue
 
-def compute_time_ratio(files_by_timestep, output_path_i, position_conj, id_cancer_cell, id_cancer_cell_mes):
+def compute_time_ratio(files_by_timestep, output_path_i, id_cancer_cell, id_cancer_cell_mes, id_connective_tissue, id_fibroblast):
     """
     Input :
-    files_by_timestep : dict {timestep: [file1, file2]}
-    output_path_i : path to the output folder
+    files_by_timestep : dict {timestep: [file1, file2]}, file1 : fichier .mat, file2 : neighboring_cells.txt
+    output_path_i : Chemin vers le dossier output_{i}
+    id_cancer_cell : ID des cellules cancéreuses (non-mésenchymateuses)
+    id_cancer_cell_mes : ID des cellules cancéreuses mésenchymateuses
+
     Output :
     ratio : temps de descente dans le tissu conjonctif / temps total de simulation
     """
@@ -448,29 +293,25 @@ def compute_time_ratio(files_by_timestep, output_path_i, position_conj, id_cance
     for timestep in files_by_timestep.keys():
         result_mat[timestep]= []
         try:
-            files = files_by_timestep[timestep]
+            files = files_by_timestep[timestep] #lister les fichiers à ce pas de temps
             cell_file = next(f for f in files if f.endswith("_cells.mat"))
             neighbor_file = next(f for f in files if f.endswith("_cell_neighbor_graph.txt"))
 
             file1 = os.path.join(output_path, cell_file)
             file2 = os.path.join(output_path, neighbor_file)
 
-            ratio, position_y, is_in_connective_tissue = get_cancer_cell_position(file1, file2, id_cancer_cell, id_cancer_cell_mes)  # Input : cell_mat_path 
-            if position_y is not None : 
+            ratio, position_y, is_in_connective_tissue = get_cancer_cell_position(file1, file2, id_cancer_cell, id_cancer_cell_mes, id_connective_tissue, id_fibroblast)  # Input : cell_mat_path 
+            if position_y is not None : #cela veut dire qu'il y a une cellule cancéreuse
                 if is_in_connective_tissue : 
-                #if position_y <= position_conj : 
                     time_in_conj_tissue = timestep
                     ratio = time_in_conj_tissue / simulation_time
                     break
             else : 
                 ratio = 1
-                break #no cancer cell found, so did not reach the connective tissue
+                break #pas de cellule cancéreuse trouvée, tissu conjonctif pas atteint
         except Exception as e:
-            #f = open( "log_file.log", "a")
-            #f.write(f"************************************** \n Erreur à l'étape {timestep} : {e} \n file1 : {file1} \n **************************************")
-            #f.close()
             raise ValueError(f"Erreur à l'étape {timestep} : {e} \n file1 : {file1}")
-    return ratio #métrique finale pour 1 simulation ! 
+    return ratio  
 
 #*******************************************************************************
 
@@ -478,13 +319,13 @@ def compute_time_ratio(files_by_timestep, output_path_i, position_conj, id_cance
 
 #*******************************************************************************
 
-def get_cancer_volume_per_timestep(cell_mat_path, pos_conj):
+def get_cancer_volume_per_timestep(cell_mat_path):
     """
     Input :
-    cell_mat_path : path to the .mat file with cell information
-    pos_conj : position y threshold for conjonctive tissue
+    cell_mat_path : Chemin vers le fichier .mat avec les informations sur les agents
 
     Output :
+    ids_volume_dict : dict {cancer_cell_id: volume}
     """
     filtered_rows = None
     ids_volume_dict = None
@@ -498,27 +339,23 @@ def get_cancer_volume_per_timestep(cell_mat_path, pos_conj):
         df_filtered = df.iloc[:, 0:6] #récupérer les 6 premières colonnes (id, (x,y,z), volume, type cellulaire)
         filtered_rows = df_filtered[(df_filtered.iloc[:, 5] == 3.0) | (df_filtered.iloc[:, 5] == 8.0)] # cancer cells (mesenchymal or not)
 
-        #Get only the cancer cells in conjonctive tissue, position between (1,2,3) = (x,y,z), below -115 in y axis
-        filtered_rows = filtered_rows[filtered_rows.iloc[:, 2] <= pos_conj] #y <= -200 (pos_conj)
         # IDs et volumes des cellules cancéreuses
         ids_cancer_cells = filtered_rows.iloc[:, 0].astype(int).tolist() #ids  
-        print(f"ids_cancer_cells : {ids_cancer_cells}")
         ids_cancer_cells_volume = filtered_rows.iloc[:, 4].astype(float).tolist() #volumes
-        ids_volume_dict = {ids_cancer_cells[i]: ids_cancer_cells_volume[i] for i in range(len(ids_cancer_cells))} 
+        ids_volume_dict = {ids_cancer_cells[i]: ids_cancer_cells_volume[i] for i in range(len(ids_cancer_cells))} # Dictionnaire id -> volume
 
     except Exception as e: 
         raise ValueError(f"Error loading file : {cell_mat_path} : {e}")
     return ids_volume_dict
 
-def get_result_mat_persistance(files_by_timestep, root_path, pos_conj):
+def get_result_mat_persistance(files_by_timestep, root_path):
     """
     Input :
     files_by_timestep : dict {timestep: [file1, file2]}
-    root_path : path to the root folder
-    pos_conj : position y threshold for conjonctive tissue
+    root_path : Chemin vers le dossier racine
 
     Output :
-    result_mat : dict {timestep: [clusters, total_cells, total_volume, timestep]}
+    result_mat : dict {timestep: {cancer_cell_ids: volumes}}
     """
     output_path = os.path.join(root_path, "PhysiCell/output/")
 
@@ -527,7 +364,7 @@ def get_result_mat_persistance(files_by_timestep, root_path, pos_conj):
         result_mat[timestep]= []
         try:
             file1 = os.path.join(output_path, files_by_timestep[timestep][0]) #cell_mat_path
-            result_array = get_cancer_volume_per_timestep(file1, pos_conj)  # Input : cell_mat_path, neighboring_cells_path / doit retourner une liste ou array de taille 3 de la forme [liste avec des sets avec les ids de chaque cellule dans chaque cluster, nb d'agents, volume total]
+            result_array = get_cancer_volume_per_timestep(file1)  # Input : cell_mat_path / retourne : dict {cancer_cell_ids: volumes}
             if result_array is not None :
                 result_mat[timestep] = result_array
             else : 
@@ -539,9 +376,11 @@ def get_result_mat_persistance(files_by_timestep, root_path, pos_conj):
 def computation_area_over_time(result_mat, dt): 
     """
     Input :
-    result_mat : dictionnaire avec pour chaque pas de temps [clusters, total_cells, total_volume, timestep]
+    result_mat : dict {timestep: {cancer_cell_ids: volumes}
+    dt : intervalle de temps entre deux sauvegardes
+
     Output :
-    area_over_time : float, aire totale de la tumeur sur le temps
+    area_over_time : float, aire totale de la tumeur sur le temps de simulation
     """
     area_over_time = 0.0
     for key in result_mat.keys():
@@ -552,9 +391,10 @@ def computation_area_over_time(result_mat, dt):
 
 if __name__ == "__main__":
     output_path_i = "/home/vidium06/src/ANA_SENS/Results_PhysiCell/sensitivity_analysis_descent_time/output_0"
-    position_conj = -215
     id_cancer_cell = 3.0
     id_cancer_cell_mes = 7.0
+    id_connective_tissue = 1.0 #A changer !!
+    id_fibroblast = 2.0
     files_by_timestep = list_path_folder(output_path_i)
-    ratio = compute_time_ratio(files_by_timestep, output_path_i, position_conj, id_cancer_cell, id_cancer_cell_mes) 
+    ratio = compute_time_ratio(files_by_timestep, output_path_i, id_cancer_cell, id_cancer_cell_mes, id_connective_tissue, id_fibroblast) 
     print(ratio)
