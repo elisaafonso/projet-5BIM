@@ -7,7 +7,7 @@
 
 ## 1. Description de l’analyse de sensibilité
 
-Un modèle agent a été implémenté sur PhysiCell avec un agent par type cellulaire de la bouche :
+Un modèle agent a été implémenté sur PhysiCell avec un agent par type de tissu ou de cellules de la bouche :
 
 - Cellules de l’épithélium basal `epi_basal`
 - Cellules de l’épithélium intermédiaire `epi_inter`
@@ -18,11 +18,16 @@ Un modèle agent a été implémenté sur PhysiCell avec un agent par type cellu
 - CAF – Cancer Associated Fibroblast `CAF`
 - Membrane basale `membrane`
 
-Deux analyses de sensibilité globale ont été réalisées à l’aide de la méthode de Sobol implémentée dans le package Python SALib : [SALib](https://salib.readthedocs.io/en/latest/api.html).  
-L’objectif de ces analyses était d’identifier les facteurs du micro‑environnement tumoral qui favorisent la persistance d’une tumeur et de déterminer quels paramètres ont le plus d’impact.  
-Une tumeur est considérée persistante lorsqu’elle descend dans le tissu conjonctif et échappe au phénomène de tapis roulant de l’épithélium.
+Deux analyses de sensibilité globale ont été réalisées à l’aide de la méthode de Sobol implémentée dans le package Python SALib : [SALib](https://salib.readthedocs.io/en/latest/api.html).  L’objectif de ces analyses était d’identifier les facteurs du micro‑environnement tumoral qui favorisent la persistance d’une tumeur et de déterminer quels paramètres ont le plus d’impact sur celle-ci.  Une tumeur est considérée persistante lorsqu’elle descend dans le tissu conjonctif et échappe au phénomène de tapis roulant de l’épithélium. 
 
----
+Les différentes étapes pour réaliser ces deux analyses de sensibilité sont : 
+1. Définir les paramètres à étudier qui semble avoir un impact sur la descente de la tumeur dans le tissu conjonctif et sa persistance.
+2. Définir les intervalles de ces paramètres et échantilloner dans l'espace de paramètre à l'aide du sampler Sobol implémenté dans SALib.
+3. Pour ces $n$ jeux de paramètres, lancer $n$ simulations à l'aide du modèle agent implémenté avec PhysiCell.
+4. Sur chaque sortie $n$ du modèle, calculer une métrique adéquate (temps de descente dans le tissu conjonctif ou volume de tumeur au cours du temps).
+5. Réaliser l'analyse de sensibilité de Sobol avec la méthode implémentée dans SALib et interprétation des indices de Sobol.
+   
+Les deux analyses et les paramètres choisis sont décrits dans les parties 1.1 et 1.2. 
 
 ## 1.1 Descente de la tumeur dans le tissu conjonctif
 
@@ -30,7 +35,7 @@ La première analyse avait pour objectif d’évaluer la descente de la tumeur d
 Les fichiers d’initialisation de PhysiCell sont disponibles dans le dossier `/initialisation_files/analyse_sens_descent_time/`.
 
 Dans les conditions d’initialisation, une seule cellule cancéreuse (non mésenchymateuse) est présente. Elle ne peut ni se diviser, ni mourir.  
-Le ratio du temps de descente de cette cellule dans le tissu conjonctif sur le temps total de simulation est calculé :
+Le ratio du temps de descente de cette cellule dans le tissu conjonctif sur le temps total de simulation est calculé comme le ratio du temps de descente dans le tissu conjonctif sur le temps total de simulation :
 
 $$
 \text{descent time} = \frac{t_{\text{descent in conj}}}{t_{\text{tot}}}
@@ -39,7 +44,7 @@ $$
 - Si le ratio est égal à 1, la cellule a été éjectée par le tapis roulant ou n’a jamais traversé la lame basale.
 - Si le ratio est égal à 0, la cellule est passée dans le tissu conjonctif dès le premier pas de temps.
 
-Cette métrique permet d’évaluer la facilité avec laquelle la cellule cancéreuse s’infiltre dans le tissu conjonctif.
+Cette métrique permet d’évaluer la facilité avec laquelle la cellule cancéreuse s’infiltre dans le tissu conjonctif. Une cellule cancéreuse est supposée infiltrée dans le tissu conjonctif si ces seuls voisins sont des agents du tissu conjonctif ou des CAFs. 
 
 Quatre paramètres ont été choisis pour cette analyse de sensibilité :
 
@@ -55,19 +60,15 @@ La plage de variation choisie est 0.01 à 1 (valeur par défaut).
 
 ### • Taux d’attachement des agents de la `membrane` entre eux
 
-Les agents de la membrane sont attachés entre eux.  
-Ce paramètre a été fixé arbitrairement entre 0 (pas attachés) et 10 (très attachés).
+La membrane basale est une matrice extracellulaire spécialisée, constituée de macromolécules qui s’assemblent et s’attachent entre elles, assurant le soutien de l’épithélium vis-à-vis du tissu conjonctif. On a donc supposé que les agents de la membrane basale étaient attachés entre eux. Le taux d'attachement des agents de la membrane entre eux a été fixé arbitrairement entre 0 (pas attachés) et 10 (très attachés).
 
 ### • Transition entre `cancer` et `cancer_mes` (et inversement)
 
-Les cellules cancéreuses ont une certaine probabilité par minute de devenir mésenchymateuses (ou de redevenir adhérentes).  
-Cette probabilité a été fixée entre 0.00001 et 0.001.  
-Au‑delà de 0.001, l’agent changeait trop souvent de type (environ toutes les heures).
+Les cellules cancéreuses ont une certaine probabilité par minute de devenir mésenchymateuses (ou de redevenir adhérentes).  Cette probabilité a été fixée entre 0.00001 et 0.001.  Au‑delà de 0.001, l’agent changeait trop souvent de type (environ toutes les heures).
 
-### • Sécrétion du facteur MMP par les cellules cancéreuses
+### • Sécrétion de métalloprotéinases (MMP) par les cellules cancéreuses
 
-Ce paramètre a été fixé arbitrairement entre 0 et 50.  
-Le facteur MMP, sécrété par les cellules cancéreuses mésenchymateuses, augmente la probabilité de dégradation des agents de la membrane au contact.
+Les cellules cancéreuses vont sécréter des métalloprotéinases qui vont dégrader la membrane basale. Cela a été implémenté sous forme d'un facteur MMP sécrété par les cellules cancéreuses. Ce facteur augmente la probabilité de dégradation des agents de la membrane au contact. Ce paramètre a été fixé arbitrairement entre 0 (aucune sécrétion) et 50 (sécrétion importante).  
 
 ---
 
@@ -75,25 +76,20 @@ Le facteur MMP, sécrété par les cellules cancéreuses mésenchymateuses, augm
 
 La deuxième analyse de sensibilité visait à évaluer la persistance de la tumeur dans le tissu conjonctif en fonction du micro‑environnement présent.
 
-Une fois la cellule cancéreuse entrée dans le tissu conjonctif, il a été supposé que la tumeur n’interagissait pas avec la matrice extracellulaire (tissu conjonctif) ni avec les CAF.  
-Dans les conditions initiales, seules des cellules tumorales et des cellules T ont été ajoutées.  
-L’hypothèse est que ce sont principalement ces deux types cellulaires, ainsi que certains paramètres les concernant, qui influencent la persistance tumorale au cours du temps.
+Une fois la cellule cancéreuse entrée dans le tissu conjonctif, il a été supposé que la tumeur n’interagissait peu avec la matrice extracellulaire (tissu conjonctif) ou les CAF.  Dans les conditions initiales, seules des cellules tumorales et des cellules T ont été ajoutées. Il a été supposé que seuls ces deux types cellulaires, ainsi que certains paramètres les concernant, influencent la persistance tumorale au cours du temps.
 
-La métrique choisie est le volume tumoral cumulé au cours du temps :
+La métrique choisie est l'intégrale du volume de la tumeur au cours du temps :
 
 $$
 \text{volume over time} = \int_0^T \text{volume des cellules tumorales}(t)\ dt
 $$
+Plus cette métrique est grande, plus la tumeur a été importante dans le simulation. 
 
 Quatre paramètres ont également été identifiés pour cette analyse.
 
 ### • Vitesse de migration des `TCell`
 
-Les cellules cancéreuses émettent un `cancer_factor` qui attire les cellules T.  
-Comme dans la partie 1.1, modifier la vitesse de migration influence la force d’attraction vers le stimulus chimique, la sensibilité au chimiotactisme ayant été fixée.
-
-Il a été observé que modifier la vitesse de migration $s_{mot}$ avait un impact plus important que modifier la sensibilité au chimiotactisme.  
-La vitesse a donc été fixée entre 0.01 et 1.
+Les cellules cancéreuses émettent un `cancer_factor` qui attire les cellules T.  Comme expliqué dans la partie 1.1, modifier la vitesse de migration influence la force d’attraction vers le stimulus chimique, la sensibilité au chimiotactisme ayant été fixée. Il a par ailleurs été observé que modifier la vitesse de migration $s_{mot}$ avait un impact plus important que modifier la sensibilité au chimiotactisme. La vitesse a été fixée entre 0.01 et 1.
 
 ### • Division des cellules cancéreuses - 0.000001 à 0.00001
 
