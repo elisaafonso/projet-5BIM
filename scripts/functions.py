@@ -319,7 +319,7 @@ def compute_time_ratio(files_by_timestep, output_path_i, id_cancer_cell, id_canc
 
 #*******************************************************************************
 
-def get_cancer_volume_per_timestep(cell_mat_path):
+def get_cancer_volume_per_timestep(cell_mat_path, id_cancer, id_cancer_mes):
     """
     Input :
     cell_mat_path : Chemin vers le fichier .mat avec les informations sur les agents
@@ -337,7 +337,7 @@ def get_cancer_volume_per_timestep(cell_mat_path):
         cells_T = cells.T #pour avoir les labels en colonne
         df = pd.DataFrame(cells_T)
         df_filtered = df.iloc[:, 0:6] #récupérer les 6 premières colonnes (id, (x,y,z), volume, type cellulaire)
-        filtered_rows = df_filtered[(df_filtered.iloc[:, 5] == 3.0) | (df_filtered.iloc[:, 5] == 8.0)] # cancer cells (mesenchymal or not)
+        filtered_rows = df_filtered[(df_filtered.iloc[:, 5] == id_cancer) | (df_filtered.iloc[:, 5] == id_cancer_mes)] # cancer cells (mesenchymal or not)
 
         # IDs et volumes des cellules cancéreuses
         ids_cancer_cells = filtered_rows.iloc[:, 0].astype(int).tolist() #ids  
@@ -348,7 +348,7 @@ def get_cancer_volume_per_timestep(cell_mat_path):
         raise ValueError(f"Error loading file : {cell_mat_path} : {e}")
     return ids_volume_dict
 
-def get_result_mat_persistance(files_by_timestep, output_path_i):
+def get_result_mat_persistance(files_by_timestep, output_path_i, id_cancer, id_cancer_mes):
     """
     Input :
     files_by_timestep : dict {timestep: [file1, file2]}
@@ -364,7 +364,7 @@ def get_result_mat_persistance(files_by_timestep, output_path_i):
         result_mat[timestep]= []
         try:
             file1 = os.path.join(output_path, files_by_timestep[timestep][0]) #cell_mat_path
-            result_array = get_cancer_volume_per_timestep(file1)  # Input : cell_mat_path / retourne : dict {cancer_cell_ids: volumes}
+            result_array = get_cancer_volume_per_timestep(file1, id_cancer, id_cancer_mes)  # Input : cell_mat_path / retourne : dict {cancer_cell_ids: volumes}
             if result_array is not None :
                 result_mat[timestep] = result_array
             else : 

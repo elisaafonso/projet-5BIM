@@ -178,8 +178,10 @@ def get_physicell_output(param_values, nb_threads, seed, root_path, analyse_sens
         interval_time = int(float(dict_xml["PhysiCell_settings"]["save"]["full_data"]["interval"]["text_explanation"]))
 
         if analyse_sensibilite == "tumor_persistance" :  
+            id_cancer = dict_corresp_name_type["cancer"]
+            id_cancer_mes = dict_corresp_name_type["cancer_mes"]
             files_by_timestep = list_mat_files(output_path_i, final_time, interval_time)
-            result_mat = get_result_mat_persistance(files_by_timestep, output_path_i)
+            result_mat = get_result_mat_persistance(files_by_timestep, output_path_i, id_cancer, id_cancer_mes)
             dt = int(dict_xml["PhysiCell_settings"]["save"]["full_data"]["interval"]["text_explanation"])/60.0  # conversion en heures
             metric = computation_area_over_time(result_mat, dt)
         
@@ -260,7 +262,47 @@ if __name__ == "__main__":
     print("Parameter path", path_param)
     with open(sys.argv[1], "r") as f:
         params = json.load(f)
-    run_main_analysis(params)
+    #run_main_analysis(params)
 
+    xml_path = r"C:\Users\elisa\_COURS_5A\projet-5BIM\ANA_SENS\tumor_persistance\config\PhysiCell_settings.xml"
+    output_storage = np.zeros(40)
+    dst_folder = ""
+
+    for i in range (40): 
+        output_path_i = f"C:\Users\elisa\OneDrive - INSA Lyon\__COURS_5A\PROJET_5BIM\Parametres_Physicell\tumor_persistance\output_{i}"
+        dict_corresp_name_type, dict_corres_microenv = get_cell_type(xml_path)
+
+        tree = ET.parse(xml_path)
+        root = tree.getroot()
+        dict_xml = {root.tag: explore_tree(root)}
+        final_time = int(float(dict_xml["PhysiCell_settings"]["overall"]["max_time"]["text_explanation"]))
+        interval_time = int(float(dict_xml["PhysiCell_settings"]["save"]["full_data"]["interval"]["text_explanation"]))
+
+        id_cancer = dict_corresp_name_type["cancer"]
+        id_cancer_mes = dict_corresp_name_type["cancer_mes"]
+        files_by_timestep = list_mat_files(output_path_i, final_time, interval_time)
+        result_mat = get_result_mat_persistance(files_by_timestep, output_path_i, id_cancer, id_cancer_mes)
+        dt = int(dict_xml["PhysiCell_settings"]["save"]["full_data"]["interval"]["text_explanation"])/60.0  # conversion en heures
+        metric = computation_area_over_time(result_mat, dt)
+        output_storage[i] = metric
+
+    analyse_sensibilite = params["analyse_sensibilite"]
+    param_bounds = params["param_bounds"]
+    nb_threads = params["nb_threads"]
+    seed = params["seed"]
+    root_path = params["physicell_path"]
+    result_folder_path = params["results_path"]
+    xml_path = params["xml_path"]
+    N = params["nb_sample_to_generate"]
+
+    problem, param_values = define_set_param(analyse_sensibilite, param_bounds, N)
+    Y = output_storage
+    np.savetxt(os.path.join(dst_folder, "output_values_recalcul.csv"), Y, delimiter=",")
+    Si = analyze(problem, Y, print_to_console=True, seed = 1)
+    print(f"Sobol Indices: {Si}")
+
+    #Enregistrer les résultats dans un fichier texte 
+    with open(os.path.join(dst_folder, "sobol_indices_result_recalcul.txt"), "w", encoding="utf-8") as f:
+        f.write(f"Sobol Indices for {analyse_sensibilite}:\n {Si}")
 
     

@@ -1651,9 +1651,9 @@
         <cell_definition name="cancer_mes" ID="7">
             <phenotype>
                 <cycle code="5" name="live">
-                    <phase_durations units="min">
-                        <duration index="0" fixed_duration="true">1440</duration>
-                    </phase_durations>
+                    <phase_transition_rates units="1/min">
+                        <rate start_index="0" end_index="0" fixed_duration="true">0.000002</rate>
+                    </phase_transition_rates>
                     <standard_asymmetric_division enabled="False">
                         <asymmetric_division_probability name="epi_basal" units="dimensionless">0</asymmetric_division_probability>
                         <asymmetric_division_probability name="epi_inter" units="dimensionless">0</asymmetric_division_probability>
