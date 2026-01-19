@@ -92,6 +92,7 @@ La métrique choisie est l'intégrale du volume de la tumeur au cours du temps :
 $$
 \text{volume over time} = \int_0^T \text{volume des cellules tumorales}(t)\ dt
 $$
+
 Plus cette métrique est grande, plus la tumeur a été importante dans le simulation. 
 
 Quatre paramètres ont également été identifiés pour cette analyse.
