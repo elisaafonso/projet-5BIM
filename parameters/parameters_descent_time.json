@@ -3,20 +3,20 @@
     "_comment" : "intervalles de paramètres correspondent dans l'ordre à 'motility_speed_t_cell', 'division_duration_cancer', 'death_cancer', 'damage_attack_rate'",
     "param_bounds": [
         [
-            0.01, 
+            0, 
+            10
+        ],
+        [
+            0.01,
             1
         ],
         [
-            0.000001,
-            0.00001
+            0.0000001,
+            0.001
         ],
         [
-            0.000001,
-            0.00001
-        ],
-        [
-            0.2,
-            5
+            0,
+            50
         ]
     ],
     "seed": 19,

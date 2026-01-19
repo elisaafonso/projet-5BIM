@@ -95,8 +95,8 @@ def define_settings(parameters_to_change, nb_threads, seed, analyse_sensibilite,
 
         # Division cellules cancéreuses (mes et non mes) - 0.000001 à 0.00001
         division_duration_cancer = parameters_to_change[1]
-        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer"]]["phenotype"]["cycle"]["phase_durations"]["duration"]["text_explanation"] = division_duration_cancer
-        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer_mes"]]["phenotype"]["cycle"]["phase_durations"]["duration"]["text_explanation"] = division_duration_cancer
+        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer_mes"]]["phenotype"]["cycle"]["phase_transition_rates"]["rate"]["text_explanation"] = division_duration_cancer
+        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer"]]["phenotype"]["cycle"]["phase_transition_rates"]["rate"]["text_explanation"] = division_duration_cancer
 
         #mort des cellules cancéreuses - 0.1 e-5 à 1 e-5
         death_cancer = parameters_to_change[2]
@@ -179,7 +179,7 @@ def get_physicell_output(param_values, nb_threads, seed, root_path, analyse_sens
 
         if analyse_sensibilite == "tumor_persistance" :  
             files_by_timestep = list_mat_files(output_path_i, final_time, interval_time)
-            result_mat = get_result_mat_persistance(files_by_timestep, root_path)
+            result_mat = get_result_mat_persistance(files_by_timestep, output_path_i)
             dt = int(dict_xml["PhysiCell_settings"]["save"]["full_data"]["interval"]["text_explanation"])/60.0  # conversion en heures
             metric = computation_area_over_time(result_mat, dt)
         
@@ -193,14 +193,6 @@ def get_physicell_output(param_values, nb_threads, seed, root_path, analyse_sens
             metric = ratio
 
         output_storage[i] = metric #stockage de la métrique
-
-        #stocker les vidéos 
-        process2 = subprocess.run(
-            ["make", "jpeg", f"OUTPUT={output_path_i}"],
-            capture_output=True,
-            text=True,
-            cwd=os.path.join(root_path, "PhysiCell")
-        )
     return output_storage
 
 def analyze_sobol(nb_threads, seed, root_path, analyse_sensibilite, param_bounds, xml_path, dst_folder, N, dict_corresp_name_type, dict_corres_microenv):
@@ -269,3 +261,6 @@ if __name__ == "__main__":
     with open(sys.argv[1], "r") as f:
         params = json.load(f)
     run_main_analysis(params)
+
+
+    

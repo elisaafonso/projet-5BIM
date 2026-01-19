@@ -134,6 +134,7 @@ def list_mat_files(folder_path, final_time, interval_time):
 
         if filename.endswith("_cells.mat"):
             files_by_timestep[key].append(filename)
+    print(files_by_timestep)
     
     # Supprimer les entrées avec un nombre de fichiers incorrect, différents de 2 
     keys_to_delete = []
@@ -265,7 +266,6 @@ def get_cancer_cell_position(cell_mat_path, neighboring_cells_path, id_cancer_ce
                 for neighbor_id in neighbor_ids : 
                     cell_row = df_filtered[df_filtered.iloc[:,0] == neighbor_id]
                     cell_type = cell_row.iloc[0, 5]
-                    print(cell_type)
                     if cell_type != id_connective_tissue and cell_type != id_fibroblast: 
                         is_in_connective_tissue = False
                         
@@ -348,7 +348,7 @@ def get_cancer_volume_per_timestep(cell_mat_path):
         raise ValueError(f"Error loading file : {cell_mat_path} : {e}")
     return ids_volume_dict
 
-def get_result_mat_persistance(files_by_timestep, root_path):
+def get_result_mat_persistance(files_by_timestep, output_path_i):
     """
     Input :
     files_by_timestep : dict {timestep: [file1, file2]}
@@ -357,7 +357,7 @@ def get_result_mat_persistance(files_by_timestep, root_path):
     Output :
     result_mat : dict {timestep: {cancer_cell_ids: volumes}}
     """
-    output_path = os.path.join(root_path, "PhysiCell/output/")
+    output_path = output_path_i
 
     result_mat = {} #initialisation du dictionnaire de résultats
     for timestep in files_by_timestep.keys():
@@ -390,11 +390,5 @@ def computation_area_over_time(result_mat, dt):
     return area_over_time
 
 if __name__ == "__main__":
-    output_path_i = "/home/vidium06/src/ANA_SENS/Results_PhysiCell/sensitivity_analysis_descent_time/output_0"
-    id_cancer_cell = 3.0
-    id_cancer_cell_mes = 7.0
-    id_connective_tissue = 1.0 #A changer !!
-    id_fibroblast = 2.0
-    files_by_timestep = list_path_folder(output_path_i)
-    ratio = compute_time_ratio(files_by_timestep, output_path_i, id_cancer_cell, id_cancer_cell_mes, id_connective_tissue, id_fibroblast) 
-    print(ratio)
+    
+    pass

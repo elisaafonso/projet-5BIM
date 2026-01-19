@@ -10,3 +10,5 @@ __pycache__/
 *.pyc
 script_analyse_sensibilite.sh
 scripts.zip
+scripts/comparaison_fichier.py
+scripts/make_video.py

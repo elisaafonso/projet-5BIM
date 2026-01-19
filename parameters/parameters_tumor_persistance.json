@@ -1,14 +1,22 @@
 {
     "analyse_sensibilite": "tumor_persistance",
     "_comment" : "intervalles de paramètres correspondent dans l'ordre à 'attachment_rate', 'cancer_motility_speed', 'transformation_rate_mes', 'sensitivity_mmp_factor'",
-    "param_bounds": [
+    "param_bounds":  [
         [
-            0.1,
-            2.0
+            0.01, 
+            1
         ],
         [
-            600.0,
-            2000.0
+            0.000001,
+            0.00001
+        ],
+        [
+            0.000001,
+            0.00001
+        ],
+        [
+            0.2,
+            2
         ]
     ],
     "seed": 19,
