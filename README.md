@@ -2,8 +2,19 @@
 
 **Sommaire :**
 
-1. Description de l'analyse de sensibilité
-2. Description du repo GitHub
+1. [Description de l’analyse de sensibilité](#1-description-de-lanalyse-de-sensibilité)
+
+   1.1 [Descente de la tumeur dans le tissu conjonctif](#11-descente-de-la-tumeur-dans-le-tissu-conjonctif)
+
+   1.2 [Persistance de la tumeur dans le tissu conjonctif](#12-persistance-de-la-tumeur-dans-le-tissu-conjonctif)
+
+2. [Description du repo GitHub](#2-description-du-repo-github)
+
+   2.1 [Lancer une analyse de sensibilité](#21-lancer-une-analyse-de-sensibilité)
+
+   2.2 [Structure du repo GitHub](#22-structure-du-repo-github)
+
+3. [Bibliographie](#3-bibliographie)
 
 ## 1. Description de l’analyse de sensibilité
 
@@ -48,7 +59,7 @@ Cette métrique permet d’évaluer la facilité avec laquelle la cellule cancé
 
 Quatre paramètres ont été choisis pour cette analyse de sensibilité :
 
-### • Vitesse de migration des agents `cancer` et `cancer_mes` ($(s_{mot}$))
+### • Vitesse de migration des agents `cancer` et `cancer_mes` $(s_{mot}$)
 
 Cette vitesse fait partie des paramètres définissant la motilité d’un agent.  
 Le biais de migration $d_{bias}$ a été fixé à 0.5, ce qui confère à l’agent une motilité **semi‑déterministe** en réponse à un stimulus chimique, ici le `CAF_chemotaxis` qui attire les cellules cancéreuses.
@@ -69,8 +80,6 @@ Les cellules cancéreuses ont une certaine probabilité par minute de devenir m�
 ### • Sécrétion de métalloprotéinases (MMP) par les cellules cancéreuses
 
 Les cellules cancéreuses vont sécréter des métalloprotéinases qui vont dégrader la membrane basale. Cela a été implémenté sous forme d'un facteur MMP sécrété par les cellules cancéreuses. Ce facteur augmente la probabilité de dégradation des agents de la membrane au contact. Ce paramètre a été fixé arbitrairement entre 0 (aucune sécrétion) et 50 (sécrétion importante).  
-
----
 
 ## 1.2 Persistance de la tumeur dans le tissu conjonctif
 
@@ -114,9 +123,7 @@ process1 = subprocess.run(
 )
 ```
 
----
-
-## Lancer une analyse de sensibilité
+## 2.1 Lancer une analyse de sensibilité
 
 Étapes :
 
@@ -168,7 +175,7 @@ Les fichiers `.json` utilisés pour l’analyse de sensibilité sont dans le dos
 
 ---
 
-## Structure du repo GitHub
+## 2.2 Structure du repo GitHub
 
 - **`parameters/`**  
   Contient les fichiers `.json`.
@@ -194,7 +201,7 @@ Pour charger ces projets dans un dépôt PhysiCell, il faut copier `descent_time
 ou  
 `make load PROJ=tumor_persistance`.
 
-## 3. Bibliography
+## 3. Bibliographie
 
 [1] Ghaffarizadeh, A., Heiland, R., Friedman, S. H., Mumenthaler, S. M., & Macklin, P. (2018). PhysiCell : An open source physics-based cell simulator for 3-D multicellular systems. PLoS Computational Biology, 14(2), e1005991. https://doi.org/10.1371/journal.pcbi.1005991
 
