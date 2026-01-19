@@ -133,7 +133,8 @@ process1 = subprocess.run(
    `python -m venv AS_env` puis l’activer
 3. Installer les dépendances :  
    `python -m pip install -r requirements.txt`
-4. Lancer l’analyse de sensibilité :  
+4. Modifier les chemins et les intervalles de paramètres dans le fichier `fichier_param.json`
+5. Lancer l’analyse de sensibilité :  
    `python test_analyse_sensibilite.py fichier_param.json`  
    (après avoir activé l’environnement virtuel)
 
@@ -164,11 +165,11 @@ Le nombre de cœurs peut être modifié via `nb_threads` (Note : il a été obse
 Dans la méthode de Sobol implémentée dans SALib, le nombre de jeux de paramètres générés est :
 
 $$
-N \times (2 + D)
+N \times (2 + 2D)
 $$
 
-avec $D = 4$ (quatre paramètres modifiés) et $N$ choisi par l’utilisateur (doit être un multiple de 2) [2].  
-Compte tenu des temps de simulation, il n’a pas été possible de choisir au‑dessus de $N = 4$ ou $N = 8$.
+avec $D = 4$ (quatre paramètres à explorer dans l'analyse) et $N$ choisi par l’utilisateur (doit être un multiple de 2) [2].  
+Compte tenu des temps de simulation, il n’a pas été possible de choisir au‑dessus de $N = 4$. 
 
 Deux types d’analyses peuvent être lancés avec la modification des quatre paramètres décrits en section 1 : `descent_time` ou `tumor_persistance`.  
 Les fichiers `.json` utilisés pour l’analyse de sensibilité sont dans le dossier `parameters`.
@@ -189,7 +190,7 @@ Les fichiers `.json` utilisés pour l’analyse de sensibilité sont dans le dos
     Contient quelques tests unitaires écrits avec `pytest`, utilisant des fichiers du dossier `test/`.
 
 - **`interface.py`**  
-  Interface graphique Tkinter permettant de modifier les paramètres et chemins directement via l’interface, puis de lancer l’analyse de sensibilité (appel à `run_main_analysis()` dans `test_analyse_sensibilite.py`).
+  Interface graphique Tkinter permettant de modifier les paramètres et chemins directement via l’interface, puis de lancer l’analyse de sensibilité (appel à `run_main_analysis()` dans `test_analyse_sensibilite.py`). L'interface graphique peut être lancé après avoir activé l'environnement virtuel et lancé cette commande : `python interface.py`. 
 
 Enfin, les fichiers C++ et les fichiers d’initialisation pour les deux analyses de sensibilité sont présents dans :
 
