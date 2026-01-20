@@ -83,8 +83,8 @@ def define_settings(parameters_to_change, nb_threads, seed, analyse_sensibilite,
         dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer_mes"]]["phenotype"]["cell_transformations"]["transformation_rates"]["transformation_rate"][dict_corresp_name_type["cancer"]]["text_explanation"] = transformation_rate_mes
 
         # Secretion cancer mes -- 0 et 50
-        sensitivity_mmp_factor = parameters_to_change[3]
-        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer_mes"]]["phenotype"]["secretion"]["substrate"][dict_corres_microenv["mmp_factor"]]["secretion_rate"]["text_explanation"] = sensitivity_mmp_factor
+        secretion_mmp_factor = parameters_to_change[3]
+        dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer_mes"]]["phenotype"]["secretion"]["substrate"][dict_corres_microenv["mmp_factor"]]["secretion_rate"]["text_explanation"] = secretion_mmp_factor
 
     ################## TUMOR PERSISTANCE ########################################
     #mettre un bord solide tissu conjonctif pour éviter // enlever CAF 
