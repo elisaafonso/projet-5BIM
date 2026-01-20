@@ -1,6 +1,6 @@
 {
     "analyse_sensibilite": "descent_time",
-    "_comment" : "intervalles de paramètres correspondent dans l'ordre à 'motility_speed_t_cell', 'division_duration_cancer', 'death_cancer', 'damage_attack_rate'",
+    "_comment" : "intervalles de paramètres correspondent dans l'ordre à 'attachment_rate', 'cancer_motility_speed', 'transformation_rate_mes', 'sensitivity_mmp_factor'",
     "param_bounds": [
         [
             0, 
