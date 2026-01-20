@@ -1,5 +1,5 @@
 {
-    "analyse_sensibilite": "descent_time",
+    "analyse_sensibilite": "descent_time1",
     "_comment" : "intervalles de paramètres correspondent dans l'ordre à 'attachment_rate', 'cancer_motility_speed', 'transformation_rate_mes', 'secretion_mmp_factor'",
     "param_bounds": [
         [
@@ -20,9 +20,9 @@
         ]
     ],
     "seed": 19,
-    "nb_threads": 5,
-    "xml_path": "C://Users/elisa/PhysiCell/config/PhysiCell_settings.xml",
-    "physicell_path": "C://Users/elisa/",
-    "results_path": "C://Users/elisa/",
+    "nb_threads": 1,
+    "xml_path": "/home/vidium06/src/ANA_SENS/PhysiCell/config/PhysiCell_settings.xml",
+    "physicell_path": "/home/vidium06/src/ANA_SENS/",
+    "results_path": "/home/vidium06/src/ANA_SENS/",
     "nb_sample_to_generate": 4
 }
