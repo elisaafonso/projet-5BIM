@@ -227,7 +227,7 @@ Ce fichier contient les indices de sensibilité de Sobol et leur intervalle de c
 
 - **`livrables/`**
   Dans ce dossier, vous trouverez un rapport scientifique sous forme d'un mini article décrivant précisemment le travail réaliser au cours du projet5bim. De plus, vous trouverez un poster scientifique vulgarisé de notre travail.
-  
+
 ## 2.2 Lancer une analyse de sensibilité
 
 Étapes :
@@ -262,13 +262,13 @@ Les paramètres utilisés pour cette analyse de sensibilité sont présents dans
 
 La gestion de l’adhésion des cellules cancéreuses non mésenchymateuses aux autres agents a été mal mise en œuvre. Les cellules cancéreuses non mésenchymateuses adhèrent trop fortement aux agents de la membrane et ne s'infiltrent donc jamais. En effet, même dans la simulation 21, où la cellule cancéreuse est infiltrée (cf. Frame 197).
 
-![frame_197_simu21](ana_descent_time1/snapshot00000197.jpg)
+![frame_197_simu21](img_ReadMe/ana_descent_time1/snapshot00000197.jpg)
 
 **_*Figure 2 — Frame 197 de la simulation 21 - descente de la tumeur dans le tissu conjonctif*_**
 
 Cette cellule a une certaine probabilité de redevenir adhérente (non mésenchymateuse). Une fois redevenue non mésenchymateuse, elle adhère automatiquement aux agents de la membrane (cf. image 215). En effet, même si la cellule cancéreuse adhère autant aux agents de la membrane qu’aux agents du tissu conjonctif. Ces derniers n’adhèrent à rien. Par ailleurs, la probabilité de passer d'une cellule cancéreuse non mésenchymateuse à une cellule mésenchymateuse par minute est trop élevée. Par exemple, dans la simulation 21, cette probabilité par minute était de ~9e-7 entre chaque frame séparée de 2 heures, la cellule changeait de type.
 
-![frame_215_simu21](ana_descent_time1/snapshot00000215.jpg)
+![frame_215_simu21](img_ReadMe/ana_descent_time1/snapshot00000215.jpg)
 
 **_*Figure 3  — Frame 215 de la simulation 21 - descente de la tumeur dans le tissu conjonctif*_**
 
