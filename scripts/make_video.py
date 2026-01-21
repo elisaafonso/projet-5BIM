@@ -4,19 +4,17 @@ import shutil
 import os 
 
 if __name__ == "__main__": 
-    num_simu = 40
-    path_results = "/home/vidium06/src/ANA_SENS/Results_PhysiCell/sensitivity_analysis_descent_time_V1_fonctionnel"
+    path_results = "/home/vidium06/src/ANA_SENS/Results_PhysiCell/sensitivity_analysis_descent_time2"
     video_path = os.path.normpath(os.path.join(path_results, "output_video"))
     os.makedirs(video_path, exist_ok=True)
     
-    
-    for i in range (num_simu) : 
-        output_path_i = os.path.join(path_results, f"output_{i}")
+    for i in range (64) : 
+        path_output_i = os.path.join(path_results, f"output_{i}")
         process1 = subprocess.run(
             [
                 "make",
                 "jpeg",
-                f"OUTPUT={output_path_i}"
+                f"OUTPUT={path_output_i}"
             ],
             capture_output=True,
             text=True,
@@ -33,7 +31,7 @@ if __name__ == "__main__":
             [
                 "make",
                 "movie",
-                f"OUTPUT={output_path_i}"
+                f"OUTPUT={path_output_i}"
             ],
             capture_output=True,
             text=True,
