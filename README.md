@@ -43,7 +43,7 @@ Un modèle agent a été implémenté sur PhysiCell avec un agent par type de ti
 
 _Analyse de sensibilité globale - Méthode de Sobol_
 
-Deux analyses de sensibilité globale ont été réalisées à l’aide de la méthode de Sobol implémentée dans le package Python SALib : [SALib](https://salib.readthedocs.io/en/latest/api.html). L’objectif de ces analyses était d’identifier les facteurs du micro‑environnement tumoral qui favorisent la persistance d’une tumeur et de déterminer quels paramètres ont le plus d’impact sur celle-ci. Une tumeur est considérée persistante lorsqu’elle descend dans le tissu conjonctif et échappe au phénomène de tapis roulant de l’épithélium.
+Deux analyses de sensibilité globale ont été réalisées à l’aide de la méthode de Sobol implémentée dans le package Python SALib : [SALib](https://salib.readthedocs.io/en/latest/api.html). L’objectif de ces analyses était d’identifier les facteurs du micro‑environnement tumoral qui favorisent la pénétration et persistance d’une tumeur et de déterminer quels paramètres ont le plus d’impact sur celle-ci. Une tumeur est considérée persistante lorsqu’elle descend dans le tissu conjonctif et échappe au phénomène de tapis roulant de l’épithélium.
 
 Nous avons privilégié une analyse de sensibilité globale plutôt qu'une méthode de screening ou une analyse de sensibilité locale, car l'objectif est d'étudier le comportement du modèle dans son ensemble plutôt que d'une solution particulière [3]. Nous avons opté pour la méthode de Sobol, basée sur la décomposition de la variance, qui permet d'estimer les indices de sensibilité associés à chaque paramètre. Cette analyse fournit des indices de sensibilité qui quantifient l’impact relatif de chaque paramètre d’entrée sur les résultats du modèle. La méthode de Sobol, implémentée dans SALib [2], renvoie trois indices de sensibilité permettant d'analyser l'influence des variables d'entrée sur la variance de sortie, en distinguant leur effet propre (S1), l'effet de leurs interactions deux à deux (S2) et leur impact total, interactions comprises (ST).Chaque indice est associé à un intervalle de confiance de 95 %.
 
@@ -85,26 +85,26 @@ Le biais de migration $d_{bias}$ a été fixé à 0.5, ce qui confère à l’ag
 
 Modifier la vitesse de migration influence donc la rapidité avec laquelle l’agent répond à la chimio‑attraction (Ghaffarizadeh et al., 2018)[1].
 
-La plage de variation choisie est 0.01 à 1 (valeur par défaut).  
+La plage de variation choisie est 0.01 à 1 µm/min (valeur par défaut).  
 À $s_{mot} = 1$, l’agent traverse la membrane très rapidement, alors qu’à ($s_{mot} = 0.01$), il le fait beaucoup plus rarement.
 
 #### • Taux d’attachement des agents de la `membrane` entre eux
 
-La membrane basale est une matrice extracellulaire spécialisée, constituée de macromolécules qui s’assemblent et s’attachent entre elles, assurant le soutien de l’épithélium vis-à-vis du tissu conjonctif. On a donc supposé que les agents de la membrane basale étaient attachés entre eux. Le taux d'attachement des agents de la membrane entre eux a été fixé arbitrairement entre 0 (pas attachés) et 10 (très attachés).
+La membrane basale est une matrice extracellulaire spécialisée, constituée de macromolécules qui s’assemblent et s’attachent entre elles, assurant le soutien de l’épithélium vis-à-vis du tissu conjonctif. On a donc supposé que les agents de la membrane basale étaient attachés entre eux. Le taux d'attachement des agents de la membrane entre eux a été fixé arbitrairement entre 0 (pas attachés) et 10 (très attachés) $\mathrm{min}^{-1}$.
 
 #### • Transition entre `cancer` et `cancer_mes` (et inversement)
 
-Les cellules cancéreuses ont une certaine probabilité par minute de devenir mésenchymateuses (ou de redevenir adhérentes). Cette probabilité a été fixée entre 0.00001 et 0.001. Au‑delà de 0.001, l’agent changeait trop souvent de type (environ toutes les heures).
+Les cellules cancéreuses ont une certaine probabilité par minute de devenir mésenchymateuses (ou inversement de redevenir adhérentes). Cette probabilité a été fixée entre 0.00001 et 0.001 $\mathrm{min}^{-1}$. Au‑delà de 0.001, l’agent changeait trop souvent de type (environ toutes les heures).
 
 #### • Sécrétion de métalloprotéinases (MMP) par les cellules cancéreuses
 
-Les cellules cancéreuses vont sécréter des métalloprotéinases qui vont dégrader la membrane basale. Cela a été implémenté sous forme d'un facteur MMP sécrété par les cellules cancéreuses. Ce facteur augmente la probabilité de dégradation des agents de la membrane au contact. Ce paramètre a été fixé arbitrairement entre 0 (aucune sécrétion) et 50 (sécrétion importante).
+Les cellules cancéreuses vont sécréter des métalloprotéinases qui vont dégrader la membrane basale. Cela a été implémenté sous forme d'un facteur MMP sécrété par les cellules cancéreuses. Ce facteur augmente la probabilité de dégradation des agents de la membrane au contact. Ce paramètre a été fixé arbitrairement entre 0 (aucune sécrétion) et 50 (sécrétion importante) $\mathrm{min}^{-1}$.
 
 ### 1.2 Persistance de la tumeur dans le tissu conjonctif
 
 La deuxième analyse de sensibilité visait à évaluer la persistance de la tumeur dans le tissu conjonctif en fonction du micro‑environnement présent.
 
-Une fois la cellule cancéreuse entrée dans le tissu conjonctif, il a été supposé que la tumeur n’interagissait peu avec la matrice extracellulaire (tissu conjonctif) ou les CAF. Dans les conditions initiales, seules des cellules tumorales et des cellules T ont été ajoutées. Il a été supposé que seuls ces deux types cellulaires, ainsi que certains paramètres les concernant, influencent la persistance tumorale au cours du temps.
+Une fois la cellule cancéreuse mésenchymateuse entrée dans le tissu conjonctif, il a été supposé que la tumeur n’interagissait pas ou peu avec la matrice extracellulaire (tissu conjonctif) ou les CAF. C'est pourquoi dans les conditions initiales, seules 10 cellules tumorales et 3 cellules T ont été ajoutées. Il a été supposé que seuls ces deux types cellulaires, ainsi que certains paramètres les concernant, influencent la persistance tumorale au cours du temps. Il faut garder à l’esprit que les résultats sont très fortement dépendants de ces conditions initiales.
 
 La métrique choisie est l'intégrale du volume de la tumeur au cours du temps :
 
@@ -112,21 +112,25 @@ $$
 \text{volume over time} = \int_0^T \text{volume des cellules tumorales}(t)\ dt
 $$
 
-Plus cette métrique est grande, plus la tumeur a été importante dans le simulation.
+Plus cette métrique est grande, plus la tumeur a été importante dans la simulation.
 
-Quatre paramètres ont également été identifiés pour cette analyse.
+Quatre paramètres ont également été identifiés pour cette analyse :
 
 #### • Vitesse de migration des `TCell`
 
-Les cellules cancéreuses émettent un `cancer_factor` qui attire les cellules T. Comme expliqué dans la partie 1.1, modifier la vitesse de migration influence la force d’attraction vers le stimulus chimique, la sensibilité au chimiotactisme ayant été fixée. Il a par ailleurs été observé que modifier la vitesse de migration $s_{mot}$ avait un impact plus important que modifier la sensibilité au chimiotactisme. La vitesse a été fixée entre 0.01 et 1.
+Les cellules cancéreuses mésenchymateuses émettent un `cancer_factor` qui attire les cellules T. Comme expliqué dans la partie 1.1, modifier la vitesse de migration influence la force d’attraction vers le stimulus chimique, la sensibilité au chimiotactisme ayant été fixée. Il a par ailleurs été observé que modifier la vitesse de migration $s_{mot}$ avait un impact plus important que modifier la sensibilité au chimiotactisme. La vitesse a été fixée entre 0.01 et 1 µm/min.
 
-#### • Division des cellules cancéreuses - 0.000001 à 0.00001
+#### • Division des cellules cancéreuses mésenchymateuses
 
-#### • Mort des cellules cancéreuses - 0.1 e-5 à 1 e-5
+Les cellules cancéreuses vont se diviser de manière déterministe après un certain temps suivant leur naissance. Ce temps a été fixé entre 1 et 3 jours, ce qui est cohérent avec la durée moyenne d'un cycle cellulaire pour des cellules cancéreuses. Par ailleurs, mettre des valeurs plus élevées ne serait pas pertinent car les cellules cancéreuses à l'état initiale seraient sinon dégradées trop vite par les cellules T. Au contraire, mettre des valeurs plus basses entrainerait inévitablement une division anarchique et incontrolée des cellules cancéreuses.
 
-#### • Damage attack rate des TCell vers les cellules cancéreuses - 0.2 à 2
+#### • Mort des cellules cancéreuses
 
----
+A chaque pas de temps, chaque cellule cancéreuse à une probabilité de mourir par apoptose (sans intervention des cellules T), proportionnelle au taux de mort fixé dans le modèle. Plus cette valeur est élevée, plus la probabilité de mort cellulaire est importante, ce qui conduit à une diminution plus rapide de la population de cellules cancéreuses. Nous avons pris un intervalle de valeurs compris entre $\mathrm{10}^{-6}$ et $\mathrm{10}^{-5}$ $\mathrm{min}^{-1}$, ce qui correspond à des cellules cancéreuses résistantes à l'apoptose dans le temps.
+
+#### • Taux de d'attaque des cellules T aux cellules cancéreuses
+
+Lorsqu’une cellule T est en contact avec une cellule cancéreuse, elle inflige des dommages à cette dernière, proportionnels au taux d’attaque fixé dans le modèle. Plus cette valeur est élevée, plus les cellules T endommagent rapidement les cellules cancéreuses, augmentant ainsi leur probabilité d’entrer en apoptose et conduisant à une élimination plus efficace de la tumeur. Nous avons pris un intervalle de valeurs compris entre 0.2 et 2 $\mathrm{min}^{-1}$, ce qui permet de représenter différents niveaux d’efficacité des cellules T sur les cellules tumorales.
 
 ## 2. Description du repo GitHub
 
