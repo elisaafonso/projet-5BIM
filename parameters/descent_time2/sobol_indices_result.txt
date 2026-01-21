@@ -1,0 +1,6 @@
+Sobol Indices for descent_time2:
+ {'S1': array([0.03876955, 0.08400069, 0.        ]), 'S1_conf': array([nan, nan, nan]), 'ST': array([0.37284757, 0.67475511, 0.        ]), 'ST_conf': array([nan, nan, nan]), 'S2': array([[        nan,  0.30383227, -0.13500601],
+       [        nan,         nan,  0.10338546],
+       [        nan,         nan,         nan]]), 'S2_conf': array([[nan, nan, nan],
+       [nan, nan, nan],
+       [nan, nan, nan]])}

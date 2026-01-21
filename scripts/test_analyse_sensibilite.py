@@ -134,7 +134,7 @@ def define_settings(parameters_to_change, nb_threads, seed, analyse_sensibilite,
         dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer_mes"]]["phenotype"]["death"]["model"][0]["death_rate"]["text_explanation"] = 0.31667e-05
 
         #change simulation time 
-        dict_xml["PhysiCell_settings"]["overall"]["max_time"]["text_explanation"] = 10000 #10000 minutes = ~7 jours
+        #dict_xml["PhysiCell_settings"]["overall"]["max_time"]["text_explanation"] = 10000 #10000 minutes = ~7 jours
 
     elif analyse_sensibilite == "descent_time2" :
         # Attachment rate : 0 et 10
@@ -155,7 +155,7 @@ def define_settings(parameters_to_change, nb_threads, seed, analyse_sensibilite,
         dict_xml["PhysiCell_settings"]["cell_definitions"]["cell_definition"][dict_corresp_name_type["cancer_mes"]]["phenotype"]["cell_transformations"]["transformation_rates"]["transformation_rate"][dict_corresp_name_type["cancer"]]["text_explanation"] = transformation_rate_mes
 
         #change simulation time 
-        dict_xml["PhysiCell_settings"]["overall"]["max_time"]["text_explanation"] = 10000 #10000 minutes = ~7 jours
+        #dict_xml["PhysiCell_settings"]["overall"]["max_time"]["text_explanation"] = 10000 #10000 minutes = ~7 jours
         
     ################## CHANGER LE NOMBRE DE COEUR ET LA SEED  ####################
     dict_xml["PhysiCell_settings"]["parallel"]["omp_num_threads"]["text_explanation"] = nb_threads
