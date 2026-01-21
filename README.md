@@ -3,33 +3,32 @@
 **Sommaire :**
 
 1. [Description de l’analyse de sensibilité](#1-description-de-lanalyse-de-sensibilité)
-   
+
    1.1 [Descente de la tumeur dans le tissu conjonctif](#11-descente-de-la-tumeur-dans-le-tissu-conjonctif)  
    1.2 [Persistance de la tumeur dans le tissu conjonctif](#12-persistance-de-la-tumeur-dans-le-tissu-conjonctif)
 
 2. [Description du repo GitHub](#2-description-du-repo-github)
-   
-   2.1 [Lancer une analyse de sensibilité](#21-lancer-une-analyse-de-sensibilité)  
-   2.2 [Structure du repo GitHub](#22-structure-du-repo-github)
+
+   2.1 [Structure du repo GitHub](#22-structure-du-repo-github)
+   2.2 [Lancer une analyse de sensibilité](#21-lancer-une-analyse-de-sensibilité)
 
 3. [Résultats](#3-résultats)
-   
+
    3.1 [Descente de la tumeur dans le tissu conjonctif](#31-descente-de-la-tumeur-dans-le-tissu-conjonctif)
-   
+
    3.1.1 [Analyse de sensibilité n°1 à 4 paramètres](#311-analyse-de-sensibilité-n1-à-4-paramètres)  
    3.1.2 [Analyse de sensibilité n°2 à 3 paramètres](#312-analyse-de-sensibilité-n2-à-3-paramètres)
-   
+
    3.2 [Persistance de la tumeur dans le tissu conjonctif](#32-persistance-de-la-tumeur-dans-le-tissu-conjonctif)
-   
+
    3.2.1 [Analyse de sensibilité n°1 à 4 paramètres](#321-analyse-de-sensibilité-n1-à-4-paramètres)  
    3.2.2 [Analyse de sensibilité n°2 à 3 paramètres](#322-analyse-de-sensibilité-n2-à-3-paramètres)
 
 4. [Bibliographie](#4-bibliographie)
 
-
 ## 1. Description de l’analyse de sensibilité
 
-*Liste des agents dans le modèle*
+_Liste des agents dans le modèle_
 
 Un modèle agent a été implémenté sur PhysiCell avec un agent par type de tissu ou de cellules de la bouche :
 
@@ -42,13 +41,13 @@ Un modèle agent a été implémenté sur PhysiCell avec un agent par type de ti
 - CAF – Cancer Associated Fibroblast `CAF`
 - Membrane basale `membrane`
 
-*Analyse de sensibilité globale - Méthode de Sobol*
+_Analyse de sensibilité globale - Méthode de Sobol_
 
 Deux analyses de sensibilité globale ont été réalisées à l’aide de la méthode de Sobol implémentée dans le package Python SALib : [SALib](https://salib.readthedocs.io/en/latest/api.html). L’objectif de ces analyses était d’identifier les facteurs du micro‑environnement tumoral qui favorisent la persistance d’une tumeur et de déterminer quels paramètres ont le plus d’impact sur celle-ci. Une tumeur est considérée persistante lorsqu’elle descend dans le tissu conjonctif et échappe au phénomène de tapis roulant de l’épithélium.
 
 Nous avons privilégié une analyse de sensibilité globale plutôt qu'une méthode de screening ou une analyse de sensibilité locale, car l'objectif est d'étudier le comportement du modèle dans son ensemble plutôt que d'une solution particulière [3]. Nous avons opté pour la méthode de Sobol, basée sur la décomposition de la variance, qui permet d'estimer les indices de sensibilité associés à chaque paramètre. Cette analyse fournit des indices de sensibilité qui quantifient l’impact relatif de chaque paramètre d’entrée sur les résultats du modèle. La méthode de Sobol, implémentée dans SALib [2], renvoie trois indices de sensibilité permettant d'analyser l'influence des variables d'entrée sur la variance de sortie, en distinguant leur effet propre (S1), l'effet de leurs interactions deux à deux (S2) et leur impact total, interactions comprises (ST).Chaque indice est associé à un intervalle de confiance de 95 %.
 
-*Etapes pour réaliser une analyse de sensibilité*
+_Etapes pour réaliser une analyse de sensibilité_
 
 Les différentes étapes pour réaliser ces deux analyses de sensibilité sont :
 
@@ -63,7 +62,7 @@ Les deux analyses et les paramètres choisis sont décrits dans les parties 1.1 
 ### 1.1 Descente de la tumeur dans le tissu conjonctif
 
 La première analyse avait pour objectif d’évaluer la descente de la tumeur dans le tissu conjonctif.  
-Les fichiers d’initialisation de PhysiCell sont disponibles dans le dossier `/ANA_SENS/`.
+Les fichiers d’initialisation de PhysiCell sont disponibles dans le dossier `projet_PhysiCell/`.
 
 Dans les conditions d’initialisation, une seule cellule cancéreuse (non mésenchymateuse) est présente. Elle ne peut ni se diviser, ni mourir.  
 Le ratio du temps de descente de cette cellule dans le tissu conjonctif sur le temps total de simulation est calculé comme le ratio du temps de descente dans le tissu conjonctif sur le temps total de simulation :
@@ -144,22 +143,12 @@ process1 = subprocess.run(
 )
 ```
 
-### 2.1 Lancer une analyse de sensibilité
+## 2.1 Structure du repo GitHub
 
-Étapes :
+- **`parameters/`**  
+  Contient les fichiers `.json` avec le détail des paramètres.
 
-1. Charger le projet dans PhysiCell :  
-   `make load PROJ=descent_time` ou `make load PROJ=tumor_persistance`
-2. Créer l’environnement virtuel :  
-   `python -m venv AS_env` puis l’activer
-3. Installer les dépendances :  
-   `python -m pip install -r requirements.txt`
-4. Modifier les chemins et les intervalles de paramètres dans le fichier `fichier_param.json`
-5. Lancer l’analyse de sensibilité :  
-   `python test_analyse_sensibilite.py fichier_param.json`  
-   (après avoir activé l’environnement virtuel)
-
-`fichier_param.json` est un dictionnaire :
+Un exemple de fichier `.json`:
 
 ```json
 {
@@ -181,26 +170,15 @@ process1 = subprocess.run(
 ```
 
 Ce fichier permet de définir les intervalles de chaque paramètre ainsi que les chemins vers les dossiers nécessaires à l’analyse de sensibilité (PhysiCell, résultats).  
-Le nombre de cœurs peut être modifié via `nb_threads` (Note : il a été observé que fixer `nb_threads = 1` améliore la reproductibilité), ainsi que la seed de PhysiCell (fixée arbitrairement à 19).
-
-Dans la méthode de Sobol implémentée dans SALib, le nombre de jeux de paramètres générés est :
+Le nombre de cœurs peut être modifié via `nb_threads` (Note : il a été observé que fixer `nb_threads = 1` améliore la reproductibilité), ainsi que la seed de PhysiCell (fixée arbitrairement à 19).  
+Dans la méthode de Sobol implémentée dans SALib [2], le nombre de jeux de paramètres générés est :
 
 $$
 N \times (2 + 2D)
 $$
 
 avec $D = 4$ (quatre paramètres à explorer dans l'analyse) et $N$ choisi par l’utilisateur (doit être un multiple de 2) [2].  
-Compte tenu des temps de simulation, il n’a pas été possible de choisir au‑dessus de $N = 4$.
-
-Deux types d’analyses peuvent être lancés avec la modification des quatre paramètres décrits en section 1 : `descent_time` ou `tumor_persistance`.  
-Les fichiers `.json` utilisés pour l’analyse de sensibilité sont dans le dossier `parameters`.
-
----
-
-### 2.2 Structure du repo GitHub
-
-- **`parameters/`**  
-  Contient les fichiers `.json`.
+Compte tenu des temps de simulation, il n’a pas été possible de choisir au‑dessus de $N = 4$ ou $N = 8$ (ce qui augmente les intervalles de confiance sur les indices de sensibilité estimés).
 
 - **`scripts/`**
   - `test_analyse_sensibilite.py`  
@@ -209,19 +187,29 @@ Les fichiers `.json` utilisés pour l’analyse de sensibilité sont dans le dos
     Implémente la lecture du fichier XML et le calcul des métriques pour la descente de la tumeur et la persistance.
   - `test_functions.py`  
     Contient quelques tests unitaires écrits avec `pytest`, utilisant des fichiers du dossier `test/`.
+  - `interface.py`  
+    Interface graphique Tkinter permettant de modifier les paramètres et chemins directement via l’interface, puis de lancer l’analyse de sensibilité (appel à `run_main_analysis()` dans `test_analyse_sensibilite.py`). L'interface graphique peut être lancé après avoir activé l'environnement virtuel et lancé cette commande : `python interface.py`.
 
-- **`interface.py`**  
-  Interface graphique Tkinter permettant de modifier les paramètres et chemins directement via l’interface, puis de lancer l’analyse de sensibilité (appel à `run_main_analysis()` dans `test_analyse_sensibilite.py`). L'interface graphique peut être lancé après avoir activé l'environnement virtuel et lancé cette commande : `python interface.py`.
+- **`projet_PhysiCell/`**
+  Enfin, les fichiers C++ et les fichiers d’initialisation pour toutes les analyses de sensibilité réalisées sont présents dans `projet_PhysiCell`. Chaque analyse a son dossier de configuration `config_descent_time1` avec les fichiers d'initilisation à l'intérieur (`cells.csv`, `cell_rules.csv` et `PhysiCell_settings.xml`).
 
-Enfin, les fichiers C++ et les fichiers d’initialisation pour les deux analyses de sensibilité sont présents dans :
+## 2.2 Lancer une analyse de sensibilité
 
-- `ANA_SENS/descent_time/`
-- `ANA_SENS/tumor_persistance/`
+Étapes :
 
-Pour charger ces projets dans un dépôt PhysiCell, il faut copier `descent_time/` et `tumor_persistance/` dans `user_projects/`, puis exécuter :  
-`make load PROJ=descent_time`  
-ou  
-`make load PROJ=tumor_persistance`.
+1. Choisir l'analyse à réaliser, copier la configuration adéquate dans un dossier `config` à l'intérieur du dossier `projet_PhysiCell`
+2. Copier le projet `projet_PhysiCell` dans `user_projects` dans le dépôt `PhysiCell`
+3. Charger le projet dans PhysiCell : `make load PROJ=projet_PhysiCell`
+4. Créer l’environnement virtuel :  
+   `python -m venv AS_env` puis l’activer
+5. Installer les dépendances :  
+   `python -m pip install -r requirements.txt`
+6. Modifier les chemins et les intervalles de paramètres dans le fichier `fichier_param.json`
+7. Lancer l’analyse de sensibilité :  
+   `python test_analyse_sensibilite.py "chemin/vers/fichier_param.json"`  
+   (après avoir activé l’environnement virtuel)
+
+Quatre types d’analyses peuvent être lancés avec la modification des quatre paramètres décrits en section 1 : `descent_time1`, `descent_time2`, `tumor_persistance1` ou `tumor_persistance2`. Les premières analyses de sensibilité ont été réalisées à 4 paramètres et les deuxièmes à 3 paramètres suivant les résultats obtenus lors des premières analyses.
 
 ## 3. Résultats
 
@@ -230,7 +218,6 @@ ou
 #### 3.1.1 Analyse de sensibilité n°1 à 4 paramètres
 
 #### 3.1.2 Analyse de sensibilité n°2 à 3 paramètres
-
 
 ### 3.2 Persistance de la tumeur dans le tissu conjonctif
 
