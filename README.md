@@ -338,7 +338,7 @@ Les simulations pour cette analyse de sensibilité ont une durée totale de 10 0
 La borne supérieure de l’intervalle de vitesse de migration des TCell a été modifiée pour passer à 0,5 à la suite de la première analyse de sensibilité.
 Par ailleurs, un état de dégénérescence des cellules cancéreuses est rarement atteint, car le temps total de simulation est trop court. La tumeur n'a donc pas le temps de proliférer. La métrique est la plus grande à la frame 27 : ~ 5e7 (Fig. 6).
 
-![frame_27_83](img_ReadMe/tp_1/snapshot00000114.jpg)
+![frame_27_83](img_ReadMe/tp2_simu27/snapshot00000082.jpg)
 
 **_*Figure 6  — Frame 83 de la simulation 27 - persistance de la tumeur dans le tissu conjonctif*_**
 
