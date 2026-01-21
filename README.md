@@ -29,11 +29,11 @@
 
    3.2.2 [Analyse de sensibilité n°2 à 3 paramètres](#322-analyse-de-sensibilité-n2-à-3-paramètres)
 
-4. [Reproductibilité](#3-reproductibilité)
-
-5. [Bibliographie](#5-bibliographie)
+4. [Bibliographie](#5-bibliographie)
 
 ## 1. Description de l’analyse de sensibilité
+
+Tous les paramètres présents dans le fichier `.xml` de configuration sont décrits dans le fichier `Specifications_Parametres_Biologiques_Modele.md`.
 
 _Liste des agents dans le modèle_
 
@@ -156,8 +156,9 @@ process1 = subprocess.run(
 
 ## 2.1 Structure du repo GitHub
 
-- **`parameters/`**  
-  Contient les fichiers `.json` avec le détail des paramètres.
+- **`parameters/`**
+  Contient un dossier par analyse de sensibilité réalisée. Chaque dossier contient :
+  1. _Un fichier `.json` avec le détail des paramètres._
 
 Un exemple de fichier `.json`:
 
@@ -190,6 +191,22 @@ $$
 
 avec $D = 4$ (quatre paramètres à explorer dans l'analyse) et $N$ choisi par l’utilisateur (doit être un multiple de 2) [2].  
 Compte tenu des temps de simulation, il n’a pas été possible de choisir au‑dessus de $N = 4$ ou $N = 8$ (ce qui augmente les intervalles de confiance sur les indices de sensibilité estimés).
+
+2.  _Un dossier `output_video/`_
+
+Il contient autant de vidéos que de simulations réalisées pour une analyse de sensibilité.
+
+3.  _Un fichier `output_values.csv`_
+
+Ce fichier contient une liste avec le calcul de la métrique pour chaque jeu de paramètre.
+
+4.  _Un fichier `param_values.csv`_
+
+Ce fichier contient les jeux de paramètres utilisés pour chaque simulation dans une analyse de sensibilité.
+
+5.  _Un fichier `sobol_indices_result.txt`_
+
+Ce fichier contient les indices de sensibilité de Sobol et leur intervalle de confiance à 95%.
 
 - **`scripts/`**
   - `test_analyse_sensibilite.py`  
@@ -351,9 +368,7 @@ Nous pouvons donc conclure que la vitesse de migration des cellules T et la dur�
 
 Une autre analyse, avec une durée de simulation plus longue (20 000 minutes) et un plus grand nombre de jeux de paramètres générés, serait nécessaire pour améliorer la précision des indices de sensibilité.
 
-## 4. Reproductibilité
-
-## 5. Bibliographie
+## 4. Bibliographie
 
 [1] Ghaffarizadeh, A., Heiland, R., Friedman, S. H., Mumenthaler, S. M., & Macklin, P. (2018). PhysiCell : An open source physics-based cell simulator for 3-D multicellular systems. PLoS Computational Biology, 14(2), e1005991. https://doi.org/10.1371/journal.pcbi.1005991
 
