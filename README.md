@@ -275,7 +275,7 @@ Une future analyse de sensibilité prenant en compte les adhésions entre les di
 
 Les simulations pour cette analyse de sensibilité ont une durée totale de 10 000 minutes soit ~7 jours. Les paramètres utilisés pour cette analyse de sensibilité sont présents dans le fichier « parameters_descent_time2.json ». 64 jeux de paramètres ont été générés pour cette analyse de sensibilité. Une seule cellule cancéreuse mésenchymateuse est présente dans les conditions initiales.
 
-**_Tableau 1 — Résultats ST et S1 pour l'analyse de sensibilité du temps de descente de la tumeur dans le tissu conjonctif_**
+**_Tableau 1 — Résultats ST et S1 pour l'analyse de sensibilité n°2 du temps de descente de la tumeur dans le tissu conjonctif_**
 
 | Paramètre             | ST       | ST_conf | S1       | S1_conf |
 | --------------------- | -------- | ------- | -------- | ------- |
@@ -283,7 +283,7 @@ Les simulations pour cette analyse de sensibilité ont une durée totale de 10 0
 | cancer_motility_speed | 0.674755 | NaN     | 0.084001 | NaN     |
 | secretion_mmp_factor  | 0.000000 | NaN     | 0.000000 | NaN     |
 
-**_Tableau 2 — Résultats S2 pour l'analyse de sensibilité du temps de descente de la tumeur dans le tissu conjonctif_**
+**_Tableau 2 — Résultats S2 pour l'analyse de sensibilité n°2 du temps de descente de la tumeur dans le tissu conjonctif_**
 | Interaction | S2 | S2_conf |
 |--------------------------------------------------|-----------|---------|
 | (attachment_rate, cancer_motility_speed) | 0.303832 | NaN |
@@ -294,7 +294,25 @@ Le rapport entre le temps de descente et le temps de simulation totale est élev
 
 #### 3.1.3 Analyse de sensibilité n°3 à 3 paramètres
 
-_En cours de simulation_
+Les simulations pour cette analyse de sensibilité ont une durée totale de 10 000 minutes soit ~7 jours. Les paramètres utilisés pour cette analyse de sensibilité sont présents dans le fichier « parameters_descent_time3.json ». 64 jeux de paramètres ont été générés pour cette analyse de sensibilité. Une seule cellule cancéreuse mésenchymateuse est présente dans les conditions initiales.
+
+**_Tableau 3 — Résultats S1 et ST pour l'analyse de sensibilité n°3 du temps de descente de la tumeur dans le tissu conjonctif_**
+| Paramètre | ST | ST_conf | S1 | S1_conf |
+|-------------------------|-----------|----------------|-----------|----------------|
+| attachment_rate | 0.495659 | 7.091415e-01 | 0.350572 | 4.269903e-01 |
+| cancer_motility_speed | 0.774743 | 1.166867e+30 | 0.592167 | 1.792375e+30 |
+| secretion_mmp_factor | 0.503867 | 4.819368e+30 | -0.327822 | 4.963500e+30 |
+
+**_Tableau 4 — Résultats S2 pour l'analyse de sensibilité n°3 du temps de descente de la tumeur dans le tissu conjonctif_**
+| Interaction | S2 | S2_conf |
+|--------------------------------------------------|------------|----------------|
+| (attachment_rate, cancer_motility_speed) | -0.002743 | 3.286800e+27 |
+| (attachment_rate, secretion_mmp_factor) | -0.141654 | 3.594676e+29 |
+| (cancer_motility_speed, secretion_mmp_factor) | 0.202407 | 5.926252e+30 |
+
+Ces indices de sensibilité sont peu interprétable et on ne peut conclure sur l'effet d'aucun des paramètres sur le rapport du temps de descente dans le tissu conjonctif sur le temps de simulation totale. En effet, les intervalles de confiance sont gigantesques et 0 est inclus dans tous les intervalles. Une simulation avec un nombre de jeux de données beaucoup plus importants devrait être réalisée.
+
+Par ailleurs, en regardant les vidéos des simulations, on voit différents cas de figures, soit la cellule cancéreuse mésenchymateuse est éjecté par le tapis roulant de l'épithélium, soit elle s'infiltre dans le tissu conjonctif ou reste au dessus de la membrane basale.
 
 ### 3.2 Persistance de la tumeur dans le tissu conjonctif
 
