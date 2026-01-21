@@ -225,6 +225,9 @@ Ce fichier contient les indices de sensibilité de Sobol et leur intervalle de c
 - **`projet_PhysiCell/`**
   Enfin, les fichiers C++ et les fichiers d’initialisation pour toutes les analyses de sensibilité réalisées sont présents dans `projet_PhysiCell`. Chaque analyse a son dossier de configuration `config_descent_time1` avec les fichiers d'initilisation à l'intérieur (`cells.csv`, `cell_rules.csv` et `PhysiCell_settings.xml`).
 
+- **`livrables/`**
+  Dans ce dossier, vous trouverez un rapport scientifique sous forme d'un mini article décrivant précisemment le travail réaliser au cours du projet5bim. De plus, vous trouverez un poster scientifique vulgarisé de notre travail.
+  
 ## 2.2 Lancer une analyse de sensibilité
 
 Étapes :
