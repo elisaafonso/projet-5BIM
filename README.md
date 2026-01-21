@@ -10,6 +10,7 @@
 2. [Description du repo GitHub](#2-description-du-repo-github)
 
    2.1 [Structure du repo GitHub](#22-structure-du-repo-github)
+
    2.2 [Lancer une analyse de sensibilité](#21-lancer-une-analyse-de-sensibilité)
 
 3. [Résultats](#3-résultats)
@@ -232,7 +233,18 @@ Les simulations pour cette analyse de sensibilité ont une durée totale de 30 0
 
 Les paramètres utilisés pour cette analyse de sensibilité sont présents dans le fichier « parameters_descent_time1.json ». Quarante jeux de paramètres ont été générés avec cette analyse de sensibilité. Sur ces 40 jeux de paramètres, la métrique de sortie était différente de 1 uniquement pour les simulations 12, 21 et 26. Cela signifie que la cellule cancéreuse ne s’est quasiment jamais infiltrée dans le tissu conjonctif. L’analyse de Sobol n’a donc pas pu déterminer l’influence des paramètres sur le ratio de temps, car tous les résultats étaient identiques. Les indices de premier, de second ordre et d’ordre total sont donc tous égaux à 0 (de même que leur intervalle de confiance).
 
-La gestion de l’adhésion des cellules cancéreuses non mésenchymateuses aux autres agents a été mal mise en œuvre. Les cellules cancéreuses non mésenchymateuses adhèrent trop fortement aux agents de la membrane et ne s'infiltrent donc jamais. En effet, même dans la simulation 21, où la cellule cancéreuse est infiltrée (cf. Frame 197). Cette cellule a une certaine probabilité de redevenir adhérente (non mésenchymateuse). Une fois redevenue non mésenchymateuse, elle adhère automatiquement aux agents de la membrane (cf. image 215). En effet, même si la cellule cancéreuse adhère autant aux agents de la membrane qu’aux agents du tissu conjonctif. Ces derniers n’adhèrent à rien. Par ailleurs, la probabilité de passer d'une cellule cancéreuse non mésenchymateuse à une cellule mésenchymateuse par minute est trop élevée. Par exemple, dans la simulation 21, cette probabilité par minute était de ~9e-7 entre chaque frame séparée de 2 heures, la cellule changeait de type.
+![frame_0](img_ReadMe/ana_descent_time1/snapshot00000000.jpg)
+**_*Figure 1  — Conditions initiales - descente de la tumeur dans le tissu conjonctif*_**
+
+La gestion de l’adhésion des cellules cancéreuses non mésenchymateuses aux autres agents a été mal mise en œuvre. Les cellules cancéreuses non mésenchymateuses adhèrent trop fortement aux agents de la membrane et ne s'infiltrent donc jamais. En effet, même dans la simulation 21, où la cellule cancéreuse est infiltrée (cf. Frame 197).
+
+![frame_197_simu21](ana_descent_time1/snapshot00000197.jpg)
+**_*Figure 2 — Frame 197 de la simulation 21 - descente de la tumeur dans le tissu conjonctif*_**
+
+Cette cellule a une certaine probabilité de redevenir adhérente (non mésenchymateuse). Une fois redevenue non mésenchymateuse, elle adhère automatiquement aux agents de la membrane (cf. image 215). En effet, même si la cellule cancéreuse adhère autant aux agents de la membrane qu’aux agents du tissu conjonctif. Ces derniers n’adhèrent à rien. Par ailleurs, la probabilité de passer d'une cellule cancéreuse non mésenchymateuse à une cellule mésenchymateuse par minute est trop élevée. Par exemple, dans la simulation 21, cette probabilité par minute était de ~9e-7 entre chaque frame séparée de 2 heures, la cellule changeait de type.
+
+![frame_215_simu21](ana_descent_time1/snapshot00000215.jpg)
+**_*Figure 3  — Frame 215 de la simulation 21 - descente de la tumeur dans le tissu conjonctif*_**
 
 Une future analyse de sensibilité prenant en compte les adhésions entre les différents agents devrait être réalisée. Ils n’avaient pas été pris en compte dans cette analyse car cela aurait impliqué un trop grand nombre de paramètres. Pour des raisons de temps, et parce que nous voulions prioriser l’étude de la descente de la tumeur dans le tissu conjonctif, nous n'avons pas pu la réaliser. La transition réversible entre cellule cancéreuse mésenchymateuse ou non a été supprimée dans la deuxième analyse (cf partie 3.1.2). Les conditions initiales seront les mêmes (cf. frame 0), mais la cellule cancéreuse sera déjà mésenchymateuse. Par ailleurs, le temps de simulation total de cette deuxième analyse sera de 10 000 minutes, soit environ 7 jours, en raison du temps de simulation.
 
@@ -265,9 +277,15 @@ _En cours de simulation_
 
 #### 3.2.1 Analyse de sensibilité n°1 à 4 paramètres
 
-Les simulations pour cette analyse de sensibilité ont une durée totale de 20 000 minutes soit ~14 jours. Les paramètres utilisés pour cette analyse de sensibilité sont présents dans le fichier « parameters_tumor_persistance1.json ». 40 jeux de paramètres ont été générés pour cette analyse de sensibilité.
+Les simulations pour cette analyse de sensibilité ont une durée totale de 20 000 minutes soit ~14 jours. Les paramètres utilisés pour cette analyse de sensibilité sont présents dans le fichier « parameters_tumor_persistance1.json ». 40 jeux de paramètres ont été générés pour cette analyse de sensibilité. Les conditions initiales sont présentes dans la figure 4.
+
+![frame_0_pt](img_ReadMe/tp_1/snapshot00000000.jpg)
+**_*Figure 4  — Conditions initiales - persistance de la tumeur dans le tissu conjonctif*_**
 
 Cette analyse de sensibilité, qui visait à évaluer la persistance de la tumeur dans le tissu conjonctif, a révélé que la quasi-totalité des simulations montraient une destruction de la tumeur par les cellules T immunitaires en moins de 5 jours. Une seule simulation montrait une tumeur ayant dégénéré, il s'agit de la simulation 16, dont l'intégrale du volume de tumeur au cours du temps est de $1.21e-9$ (cf. image 114 de la simulation 16).
+
+![frame_114_16](img_ReadMe/tp_1/snapshot00000114.jpg)
+**_*Figure 5  — Frame 114 de la simulation 16 - persistance de la tumeur dans le tissu conjonctif*_**
 
 **_Tableau 3 : Indices de sensibilité de Sobol : ST et S1 - persistance de la tumeur 1_**
 
@@ -310,7 +328,10 @@ Les simulations pour cette analyse de sensibilité ont une durée totale de 10 0
 | (division_duration_cancer, damage_attack_rate) | 1.016937 | 2.327555 |
 
 La borne supérieure de l’intervalle de vitesse de migration des TCell a été modifiée pour passer à 0,5 à la suite de la première analyse de sensibilité.
-Par ailleurs, un état de dégénérescence des cellules cancéreuses est rarement atteint, car le temps total de simulation est trop court. La tumeur n'a donc pas le temps de proliférer.
+Par ailleurs, un état de dégénérescence des cellules cancéreuses est rarement atteint, car le temps total de simulation est trop court. La tumeur n'a donc pas le temps de proliférer. La métrique est la plus grande à la frame 27 : ~ 5e7 (Fig. 6).
+
+![frame_27_83](img_ReadMe/tp_1/snapshot00000114.jpg)
+**_*Figure 6  — Frame 83 de la simulation 27 - persistance de la tumeur dans le tissu conjonctif*_**
 
 Ces résultats sont plus cohérents que ceux de la partie 3.2.1, car ils ne présentent que des valeurs positives pour S1 et ST. Les valeurs négatives de S2 sont probablement dues à des erreurs de calcul et ne sont pas interprétables. L’intervalle de confiance de 95 % des indices de premier ordre, c'est-à-dire des effets propres de chaque paramètre, est supérieur à l’indice S1 ; on ne peut donc pas conclure à la présence ou non de l’effet propre de ces paramètres sur la persistance de la tumeur.
 En revanche, les indices d'ordre total, qui prennent en compte les effets propres de chaque paramètre ainsi que les interactions d'ordre supérieur, ont des valeurs légèrement inférieures aux intervalles de confiance (ST ± ST\_(conf)).
