@@ -75,7 +75,7 @@ Dans les conditions d’initialisation, une seule cellule cancéreuse (non mése
 Le ratio du temps de descente de cette cellule dans le tissu conjonctif sur le temps total de simulation est calculé comme le ratio du temps de descente dans le tissu conjonctif sur le temps total de simulation :
 
 $$
-\text{descent time} = \frac{t_{\text{descent in conj}}}{t_{\text{tot}}}
+\text{time ratio} = \frac{t_{\text{descent in conj}}}{t_{\text{tot}}}
 $$
 
 - Si le ratio est égal à 1, la cellule a été éjectée par le tapis roulant ou n’a jamais traversé la lame basale.
@@ -218,15 +218,15 @@ Ce fichier contient les indices de sensibilité de Sobol et leur intervalle de c
   - `interface.py`  
     Interface graphique Tkinter permettant de modifier les paramètres et chemins directement via l’interface, puis de lancer l’analyse de sensibilité (appel à `run_main_analysis()` dans `test_analyse_sensibilite.py`). L'interface graphique peut être lancé après avoir activé l'environnement virtuel et lancé cette commande : `python interface.py`.
   - `comparaison_fichier.py`
-    Ce script a servi à comparer les fichiers de sortie de l'analyse de sensibilité à 4 paramètres de la descente de la tumeur dans le tissu conjonctif pour vérifier la reproductibilité. Les simulations ont été lancées deux fois (deux fois 40 simulations avec 40 jeux de paramètres différents) et les fichiers output `*_cells.mat` et `*_cell_neighbor_graph.txt` comparés. Ces deux analyses ont donné exactement les mêmes résultats confirmant la reproductibilité de nos simulations quand le nombre de coeur pour la simulation est défini à 1.
+    Ce script a servi à comparer les fichiers de sortie de l'analyse de sensibilité à 4 paramètres de la descente de la tumeur dans le tissu conjonctif pour vérifier la reproductibilité. Les simulations ont été lancées deux fois (deux fois 40 simulations avec 40 jeux de paramètres différents) et les fichiers output `*_cells.mat` et `*_cell_neighbor_graph.txt` comparés. Ces deux analyses ont donné exactement les mêmes résultats confirmant la reproductibilité de nos simulations quand le nombre de cœurs pour la simulation est défini à 1.
   - `make_video.py`
     Ce script permet de générer toutes les vidéos pour une analyse de sensibilité donnée. Les chemins sont à modifier dans le fichier python.
 
 - **`projet_PhysiCell/`**
-  Enfin, les fichiers C++ et les fichiers d’initialisation pour toutes les analyses de sensibilité réalisées sont présents dans `projet_PhysiCell`. Chaque analyse a son dossier de configuration `config_descent_time1` avec les fichiers d'initilisation à l'intérieur (`cells.csv`, `cell_rules.csv` et `PhysiCell_settings.xml`).
+  Enfin, les fichiers C++ et les fichiers d’initialisation pour toutes les analyses de sensibilité réalisées sont présents dans `projet_PhysiCell`. Chaque analyse a son dossier de configuration `config_descent_time1` avec les fichiers d'initialisation à l'intérieur (`cells.csv`, `cell_rules.csv` et `PhysiCell_settings.xml`).
 
 - **`livrables/`**
-  Dans ce dossier, vous trouverez un rapport scientifique sous forme d'un mini article décrivant précisemment le travail réaliser au cours du projet5bim. De plus, vous trouverez un poster scientifique vulgarisé de notre travail.
+  Dans ce dossier, vous trouverez un rapport scientifique sous forme d'un mini article décrivant précisément le travail réalisé au cours du projet5bim. De plus, vous trouverez un poster scientifique vulgarisé de notre travail.
 
 ## 2.2 Lancer une analyse de sensibilité
 
@@ -293,7 +293,7 @@ Les simulations pour cette analyse de sensibilité ont une durée totale de 10 0
 | (attachment_rate, secretion_mmp_factor) | -0.135006 | NaN |
 | (cancer_motility_speed, secretion_mmp_factor) | 0.103385 | NaN |
 
-Le rapport entre le temps de descente et le temps de simulation totale est élevé, ce qui indique que la cellule cancéreuse n'a réussi à s'infiltrer que très rarement dans le tissu conjonctif. Cela explique pourquoi les intervalles de confiance à 95 % n'ont pas pu être calculés par SALib, car la variance de sortie est presque nulle. Par ailleurs, la sécrétion du facteur MMP n’a pas l’air d’avoir d’impact. Cette absence d'impact est confirmée par l'observation des simulations : la règle implémentée dans le fichier `cell_rules.csv` concernant la dégradation des agents de la membrane au contact du facteur MMP n'a pas d'effet. Le facteur de Hill de cette règle a été drastiquement diminué et la valeur de saturation augmentée. On obtient ainsi une cellule cancéreuse mésenchymateuse qui détruit les agents de la membrane grâce à la sécrétion du facteur MMP. Une troisième et dernière analyse de sensibilité a été réalisée (3.1.3) avec la même durée de simulation en prenant en compte ces nouveaux paramètres. L'intervalle de sécrétion du facteur MMP par les cellules cancéreuses a été modifié entre 0 (absence de sécrétion) et 10 (sécrétion importante entraînant la destruction des agents de la membrane). Le taux de décroissance du facteur a par ailleurs été diminué à 10.
+Le rapport entre le temps de descente et le temps de simulation totale est élevé, ce qui indique que la cellule cancéreuse n'a réussi à s'infiltrer que très rarement dans le tissu conjonctif. Cela explique pourquoi les intervalles de confiance à 95 % n'ont pas pu être calculés par SALib, car la variance de sortie est presque nulle. Par ailleurs, la sécrétion du facteur MMP n’a pas l’air d’avoir d’impact. Cette absence d'impact est confirmée par l'observation des simulations : la règle implémentée dans le fichier `cell_rules.csv` concernant la dégradation des agents de la membrane au contact du facteur MMP n'a pas d'effet. Le facteur de Hill de cette règle a été drastiquement diminué et la valeur de saturation a été augmentée. On obtient ainsi une cellule cancéreuse mésenchymateuse qui détruit les agents de la membrane grâce à la sécrétion du facteur MMP. Une troisième et dernière analyse de sensibilité a été réalisée (3.1.3) avec la même durée de simulation en prenant en compte ces nouveaux paramètres. L'intervalle de sécrétion du facteur MMP par les cellules cancéreuses a été modifié entre 0 (absence de sécrétion) et 10 (sécrétion importante entraînant la destruction des agents de la membrane). Le taux de décroissance du facteur a par ailleurs été diminué à 10.
 
 #### 3.1.3 Analyse de sensibilité n°3 à 3 paramètres
 
@@ -313,9 +313,9 @@ Les simulations pour cette analyse de sensibilité ont une durée totale de 10 0
 | (attachment_rate, secretion_mmp_factor) | -0.141654 | 3.594676e+29 |
 | (cancer_motility_speed, secretion_mmp_factor) | 0.202407 | 5.926252e+30 |
 
-Ces indices de sensibilité sont peu interprétable et on ne peut conclure sur l'effet d'aucun des paramètres sur le rapport du temps de descente dans le tissu conjonctif sur le temps de simulation totale. En effet, les intervalles de confiance sont gigantesques et 0 est inclus dans tous les intervalles. Une simulation avec un nombre de jeux de données beaucoup plus importants devrait être réalisée.
+Ces indices de sensibilité sont peu interprétables et on ne peut conclure sur l'effet d'aucun des paramètres sur le rapport du temps de descente dans le tissu conjonctif sur le temps de simulation total. En effet, les intervalles de confiance sont gigantesques et 0 est inclus dans tous les intervalles. Une simulation avec un nombre de jeux de données beaucoup plus important devrait être réalisée.
 
-Par ailleurs, en regardant les vidéos des simulations, on voit différents cas de figures, soit la cellule cancéreuse mésenchymateuse est éjecté par le tapis roulant de l'épithélium, soit elle s'infiltre dans le tissu conjonctif ou reste au dessus de la membrane basale.
+Par ailleurs, en regardant les vidéos des simulations, on voit différents cas de figure, soit la cellule cancéreuse mésenchymateuse est éjectée par le tapis roulant de l'épithélium, soit elle s'infiltre dans le tissu conjonctif ou reste au-dessus de la membrane basale.
 
 ### 3.2 Persistance de la tumeur dans le tissu conjonctif
 
